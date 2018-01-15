@@ -61,6 +61,7 @@ SiStripSimBlock = cms.PSet(
     TrackerConfigurationFromDB = cms.bool(False),
     ZeroSuppression            = cms.bool(True),
     LorentzAngle               = cms.string(''),
+    LorentzAngleValue          = cms.double(0),
     Gain                       = cms.string(''),
     #-----SiStripDigitizerAlgorithm
     PreMixingMode              = cms.bool(False),

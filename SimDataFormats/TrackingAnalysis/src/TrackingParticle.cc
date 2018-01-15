@@ -94,6 +94,18 @@ void TrackingParticle::setNumberOfTrackerLayers( const int numberOfTrackerLayers
 	numberOfTrackerLayers_=numberOfTrackerLayers;
 }
 
+
+void TrackingParticle::setTkHitDetU( vector<uint32_t> detIdU )
+{
+     //std::cout << " in set tk detid" << std::endl;
+     tkHitDetU_ = detIdU;
+}
+   
+void TrackingParticle::setTkHitDetId( vector<DetId> detId )
+{
+     tkHitDetId_ = detId;
+}
+
 std::ostream& operator<< (std::ostream& s, TrackingParticle const & tp)
 {
     s << "TP momentum, q, ID, & Event #: "

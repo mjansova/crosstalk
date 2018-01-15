@@ -69,6 +69,7 @@ public:
      float posInLayer;
      float distIP;
      float timeCorr;
+     float timeNotCorr;
      int station;
      DetId driftCell;
   };

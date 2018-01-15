@@ -1,6 +1,8 @@
 #ifndef MuonReco_MuonTimeExtra_h
 #define MuonReco_MuonTimeExtra_h
 
+#include  <vector>
+
 /** \class reco::MuonTimeExtra MuonTimeExtra.h DataFormats/MuonReco/interface/MuonTimeExtra.h
  *  
  * A class holding timing information calculated for a muon. 
@@ -49,7 +51,22 @@ namespace reco {
       float timeAtIpOutInErr() const { return timeAtIpOutInErr_; };
       void setTimeAtIpOutIn( const float timeIp )     { timeAtIpOutIn_=timeIp; }; 
       void setTimeAtIpOutInErr( const float timeErr ) { timeAtIpOutInErr_=timeErr; };
-       
+      
+      //hit time
+      std::vector<float> timeAtIpInOutHIT()    const { return timeAtIpInOutHIT_; };
+      void setTimeAtIpInOutHIT( const std::vector<float> timeIp )     { timeAtIpInOutHIT_=timeIp; }; 
+
+      std::vector<float> timeAtIpOutInHIT()    const { return timeAtIpOutInHIT_; };
+      void setTimeAtIpOutInHIT( const std::vector<float> timeIp )     { timeAtIpOutInHIT_=timeIp; }; 
+
+
+      std::vector<float> t0HIT()    const { return t0HIT_; };
+      void setT0HIT( const std::vector<float> timeZero )     { t0HIT_=timeZero; }; 
+ 
+      std::vector<float> distanceHIT()    const { return distanceHIT_; };
+      void setDistanceHIT( const std::vector<float> dist )     { distanceHIT_=dist; }; 
+ 
+ 
       /// direction estimation based on time dispersion
       Direction direction() const
       {
@@ -76,7 +93,13 @@ namespace reco {
       float timeAtIpInOutErr_;
       float timeAtIpOutIn_;
       float timeAtIpOutInErr_;
-      
+
+      std::vector<float> timeAtIpInOutHIT_;
+      std::vector<float> timeAtIpOutInHIT_;
+
+      std::vector<float> t0HIT_;
+      std::vector<float> distanceHIT_;
+
   };
 
 }

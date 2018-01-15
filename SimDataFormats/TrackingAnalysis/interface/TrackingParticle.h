@@ -8,6 +8,7 @@
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "SimDataFormats/TrackingAnalysis/interface/TrackingVertexContainer.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+#include "DataFormats/DetId/interface/DetId.h"
 
 //
 // Forward declarations
@@ -16,6 +17,7 @@ class TrackingVertex;
 class SimTrack;
 class EncodedEventId;
 
+using namespace std;
 /** @brief Monte Carlo truth information used for tracking validation.
  *
  * Object with references to the original SimTrack and parent and daughter TrackingVertices.
@@ -249,13 +251,22 @@ public:
     * Different from numberOfTrackerHits because this method counts multiple hits on overlaps in the layer as one hit. */
    int numberOfTrackerLayers() const {return numberOfTrackerLayers_;}
 
+
+   vector<uint32_t> tkHitDetU() const { std::cout<< "in get det id " << std::endl; return tkHitDetU_;}
+   vector<DetId> tkHitDetId() const {return tkHitDetId_;}
+
    void setNumberOfHits( int numberOfHits );
    void setNumberOfTrackerHits( int numberOfTrackerHits );
    void setNumberOfTrackerLayers( const int numberOfTrackerLayers );
+   void setTkHitDetU( vector<uint32_t> detIdU );
+   void setTkHitDetId( vector<DetId> detId );
+
 private:
     int numberOfHits_; ///< @brief The total number of hits
     int numberOfTrackerHits_; ///< @brief The number of tracker only hits
     int numberOfTrackerLayers_; ///< @brief The number of tracker layers with hits. Equivalent to the old matchedHit.
+    vector<uint32_t> tkHitDetU_;
+    vector<DetId> tkHitDetId_;
 
     /// references to G4 and reco::GenParticle tracks
     std::vector<SimTrack> g4Tracks_;
