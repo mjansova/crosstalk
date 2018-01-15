@@ -20,18 +20,36 @@
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "boost/foreach.hpp"
+#include "RecoLocalTracker/SiStripClusterizer/interface/SiStripClusterInfo.h"
+#include "DataFormats/TrackerCommon/interface/TrackerTopology.h"
+#include "Geometry/Records/interface/TrackerTopologyRcd.h"
+#include "DataFormats/SiStripDigi/interface/SiStripProcessedRawDigi.h"
 
 #include "CalibTracker/Records/interface/SiStripDependentRecords.h"
 #include <map>
+#include <iostream>
+#include <fstream>
+
+using namespace std;
+
+uint32_t ev=0;
+uint32_t ntracks =0;
+
+  ofstream myfile;
 
 ShallowTrackClustersProducer::ShallowTrackClustersProducer(const edm::ParameterSet& iConfig)
   :  tracks_token_(consumes<edm::View<reco::Track> >(iConfig.getParameter<edm::InputTag>("Tracks"))),
 		 association_token_(consumes<TrajTrackAssociationCollection>(iConfig.getParameter<edm::InputTag>("Tracks"))),
      clusters_token_( consumes< edmNew::DetSetVector<SiStripCluster> >( iConfig.getParameter<edm::InputTag>("Clusters") ) ),
+     theVertexToken_(consumes<std::vector<reco::Vertex> >          (iConfig.getParameter<edm::InputTag>("vertices"))),
+     theDigisToken_    (consumes<edm::DetSetVector<SiStripProcessedRawDigi> > (edm::InputTag("siStripProcessedRawDigis", ""))),
      Suffix       ( iConfig.getParameter<std::string>("Suffix")    ),
      Prefix       ( iConfig.getParameter<std::string>("Prefix") )
+     //lowBound       ( iConfig.getParameter<int32_t>("lowBound") ),
+     //highBound       ( iConfig.getParameter<int32_t>("highBound") ),
+     //filename       ( iConfig.getParameter<std::string>("filename") )
 {
-  produces<std::vector<int> > ( Prefix + "clusterIdx"      + Suffix ); //link: on trk cluster --> general cluster info 
+  /*produces<std::vector<int> > ( Prefix + "clusterIdx"      + Suffix ); //link: on trk cluster --> general cluster info 
   produces<std::vector<int> > ( Prefix + "onTrkClusterIdx" + Suffix ); //link: general cluster info --> on track cluster
 	produces <std::vector<int> > ( Prefix + "onTrkClustersBegin" + Suffix ); //link: track --> onTrkInfo (range)
 	produces <std::vector<int> > ( Prefix + "onTrkClustersEnd" + Suffix ); //link: track --> onTrkInfo (range)
@@ -72,6 +90,50 @@ ShallowTrackClustersProducer::ShallowTrackClustersProducer(const edm::ParameterS
   produces <std::vector<float> >       ( Prefix + "drifty"        + Suffix );
   produces <std::vector<float> >       ( Prefix + "driftz"        + Suffix );
   produces <std::vector<float> >       ( Prefix + "globalZofunitlocalY" + Suffix );            
+*/
+
+  produces <std::vector<unsigned> >    ( Prefix + "number"       );
+  produces <std::vector<unsigned> >    ( Prefix + "width"        );
+  produces <std::vector<float> >       ( Prefix + "variance"     );
+  produces <std::vector<float> >       ( Prefix + "barystrip"    );
+  produces <std::vector<float> >       ( Prefix + "middlestrip"  );
+  produces <std::vector<unsigned> >    ( Prefix + "charge"       );
+  produces <std::vector<float> >       ( Prefix + "noise"        );
+  produces <std::vector<float> >       ( Prefix + "ston"         );
+  produces <std::vector<unsigned> >    ( Prefix + "seedstrip"    );
+  produces <std::vector<unsigned> >    ( Prefix + "seedindex"    );
+  produces <std::vector<unsigned> >    ( Prefix + "seedcharge"   );
+  produces <std::vector<float> >       ( Prefix + "seednoise"    );
+  produces <std::vector<float> >       ( Prefix + "seedgain"     );
+  produces <std::vector<unsigned> >    ( Prefix + "qualityisbad" );
+
+  produces <std::vector<float> >       ( Prefix + "rawchargeC"   );
+  produces <std::vector<float> >       ( Prefix + "rawchargeL"   );
+  produces <std::vector<float> >       ( Prefix + "rawchargeR"   );
+  produces <std::vector<float> >       ( Prefix + "rawchargeLL"   );
+  produces <std::vector<float> >       ( Prefix + "rawchargeRR"   );
+  produces <std::vector<float> >       ( Prefix + "eta"          );
+  produces <std::vector<float> >       ( Prefix + "foldedeta"    );
+  produces <std::vector<float> >       ( Prefix + "etaX"         );
+  produces <std::vector<float> >       ( Prefix + "etaasymm"     );
+  produces <std::vector<float> >       ( Prefix + "outsideasymm");
+  produces <std::vector<float> >       ( Prefix + "neweta");
+  produces <std::vector<float> >       ( Prefix + "newetaerr");
+
+  produces <std::vector<unsigned> >    ( Prefix + "detid"         );
+  produces <std::vector<int> >         ( Prefix + "subdetid"      );
+  produces <std::vector<int> >         ( Prefix + "module"        );
+  produces <std::vector<int> >         ( Prefix + "side"          );
+  produces <std::vector<int> >         ( Prefix + "layerwheel"    );
+  produces <std::vector<int> >         ( Prefix + "stringringrod" );
+  produces <std::vector<int> >         ( Prefix + "petal"         );
+  produces <std::vector<int> >         ( Prefix + "stereo"        );
+  //produces <std::vector<float> >         ( Prefix + "stripLength"        );
+  //produces <std::vector<float> >         ( Prefix + "thickness"        );
+
+  produces <std::vector<float> >        ( "PU"       );
+  produces <std::vector<unsigned int> > ( "bx"       );
+
 }
 
 void ShallowTrackClustersProducer::
@@ -79,7 +141,10 @@ produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   shallow::CLUSTERMAP clustermap = shallow::make_cluster_map(iEvent, clusters_token_);
   edm::Handle<edm::View<reco::Track> > tracks;	             iEvent.getByToken(tracks_token_, tracks);	  
 
+
+
   int size = clustermap.size();
+  cout << "track size " << tracks->size() << "clustermap size " << size <<  endl;
 
 	//links
   auto clusterIdx        = std::make_unique<std::vector<int>>(); //link: on trk cluster --> general cluster info 
@@ -123,16 +188,84 @@ produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto  driftz       = std::make_unique<std::vector<float>>(); driftz     ->reserve(size);
   auto  globalZofunitlocalY = std::make_unique<std::vector<float>>(); globalZofunitlocalY->reserve(size);
 
+
+  auto       number        = std::make_unique<std::vector<unsigned>>(7,0);
+  auto       width         = std::make_unique<std::vector<unsigned>>();
+  auto       variance      = std::make_unique<std::vector<float>>();
+  auto       barystrip     = std::make_unique<std::vector<float>>();
+  auto       middlestrip   = std::make_unique<std::vector<float>>();
+  auto       charge        = std::make_unique<std::vector<unsigned>>();
+  auto       noise         = std::make_unique<std::vector<float>>();
+  auto       ston          = std::make_unique<std::vector<float>>();
+  auto       seedstrip     = std::make_unique<std::vector<unsigned>>();
+  auto       seedindex     = std::make_unique<std::vector<unsigned>>();
+  auto       seedcharge    = std::make_unique<std::vector<unsigned>>();
+  auto       seednoise     = std::make_unique<std::vector<float>>();
+  auto       seedgain      = std::make_unique<std::vector<float>>();
+  auto       qualityisbad  = std::make_unique<std::vector<unsigned>>();
+
+  auto       rawchargeC    = std::make_unique<std::vector<float>>();
+  auto       rawchargeL    = std::make_unique<std::vector<float>>();
+  auto       rawchargeR    = std::make_unique<std::vector<float>>();
+  auto       rawchargeLL   = std::make_unique<std::vector<float>>();
+  auto       rawchargeRR   = std::make_unique<std::vector<float>>();
+  auto       etaX          = std::make_unique<std::vector<float>>();
+  auto       eta           = std::make_unique<std::vector<float>>();
+  auto       foldedeta     = std::make_unique<std::vector<float>>();
+  auto       etaasymm      = std::make_unique<std::vector<float>>();
+  auto       outsideasymm  = std::make_unique<std::vector<float>>();
+  auto       neweta        = std::make_unique<std::vector<float>>();
+  auto       newetaerr     = std::make_unique<std::vector<float>>();
+
+  auto       detid         = std::make_unique<std::vector<unsigned>>();
+  auto       subdetid      = std::make_unique<std::vector<int>>();
+  auto       side          = std::make_unique<std::vector<int>>();
+  auto       module        = std::make_unique<std::vector<int>>();
+  auto       layerwheel    = std::make_unique<std::vector<int>>();
+  auto       stringringrod = std::make_unique<std::vector<int>>();
+  auto       petal         = std::make_unique<std::vector<int>>();
+  auto       stereo        = std::make_unique<std::vector<int>>();
+  auto       stripLength   = std::make_unique<std::vector<float>>();
+  auto       thickness     = std::make_unique<std::vector<float>>();
+
+  auto       PU      = std::make_unique<std::vector<float>>();
+  auto bx            = std::make_unique<std::vector<unsigned int>>();
+
   edm::ESHandle<TrackerGeometry> theTrackerGeometry;         iSetup.get<TrackerDigiGeometryRecord>().get( theTrackerGeometry );  
   edm::ESHandle<MagneticField> magfield;		     iSetup.get<IdealMagneticFieldRecord>().get(magfield);		      
   edm::ESHandle<SiStripLorentzAngle> SiStripLorentzAngle;    iSetup.get<SiStripLorentzAngleDepRcd>().get(SiStripLorentzAngle);      
 
   edm::Handle<TrajTrackAssociationCollection> associations;  iEvent.getByToken(association_token_, associations);
 
+    edm::Handle<edm::DetSetVector<SiStripProcessedRawDigi> > rawProcessedDigis;
+    iEvent.getByToken(theDigisToken_,rawProcessedDigis);
+
+
+  edm::Handle<std::vector<reco::Vertex> > vtx;
+  iEvent.getByToken(theVertexToken_, vtx); 
+
+  edm::ESHandle<TrackerTopology> tTopoHandle;
+  iSetup.get<TrackerTopologyRcd>().get(tTopoHandle);
+  const TrackerTopology* const tTopo = tTopoHandle.product();
+
   TrajectoryStateCombiner combiner;
 
 	size_t ontrk_cluster_idx=0;
   std::map<size_t, std::vector<size_t> > mapping; //cluster idx --> on trk cluster idx (multiple)
+
+
+  //myfile.open(filename);
+  float PU_=0;
+  PU_=vtx->size();
+  //PU_=5; //@MJ@ TODO completely fake
+  //if(PU_>lowBound && PU_<highBound)
+  //{
+      ev++;
+      PU->push_back(PU_);
+      bx->push_back(iEvent.bunchCrossing());
+ // }
+  //myfile << "n events " << ev << std::endl;
+
 
   for( TrajTrackAssociationCollection::const_iterator association = associations->begin(); 
        association != associations->end(); association++) {
@@ -140,6 +273,14 @@ produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     const reco::Track* track = association->val.get();
 		int trk_idx = shallow::findTrackIndex(tracks, track); 
 		size_t trk_strt_idx = ontrk_cluster_idx;
+
+    
+  //if(PU_>lowBound && PU_<highBound)
+  //{
+      ntracks++;
+  //}
+  //myfile << "n tracks " << ntracks << std::endl;
+  //myfile.close();
 
     BOOST_FOREACH( const TrajectoryMeasurement measurement, traj->measurements() ) {
       const TrajectoryStateOnSurface tsos = measurement.updatedState();
@@ -164,6 +305,14 @@ produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	
 				unsigned i = cluster->second;
 
+
+                                uint32_t id = hit->geographicalId();
+                                const moduleVars moduleV(id, tTopo);
+                                //std::cout << "geografical id " << id << std::endl;
+                                const SiStripClusterInfo info(*cluster_ptr, iSetup, id);
+                                const NearDigis digis = rawProcessedDigis.isValid() ? NearDigis(info, *rawProcessedDigis) : NearDigis(info);
+                                
+
 				//find if cluster was already assigned to a previous track
 				auto already_visited = mapping.find(i);
 				int nassociations = 1;
@@ -183,7 +332,56 @@ produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 				LocalVector drift = shallow::drift( theStripDet, *magfield, *SiStripLorentzAngle);
 				
 				if(nassociations == 1) onTrkClusterIdx->at(i) = ontrk_cluster_idx; //link: general cluster info --> on track cluster
-				clusterIdx->push_back(  i );  //link: on trk cluster --> general cluster info 
+				clusterIdx->push_back(  i );  //link: on trk cluster --> general cluster info
+//if(PU_>lowBound && PU_<highBound)
+//{
+      (number->at(0))++;
+      (number->at(moduleV.subdetid))++;
+
+                                       width->push_back(        cluster_ptr->amplitudes().size()                              );
+		      barystrip->push_back(    cluster_ptr->barycenter()                                     );
+		      variance->push_back(     info.variance()                                         );
+		      middlestrip->push_back(  info.firstStrip() + info.width()/2.0                    );
+		      charge->push_back(       info.charge()                                           );
+		      noise->push_back(        info.noiseRescaledByGain()                              );
+		      ston->push_back(         info.signalOverNoise()                                  );
+		      seedstrip->push_back(    info.maxStrip()                                         );
+		      seedindex->push_back(    info.maxIndex()                                         );
+		      seedcharge->push_back(   info.maxCharge()                                        );
+		      seednoise->push_back(    info.stripNoisesRescaledByGain().at(info.maxIndex())   );
+		      seedgain->push_back(     info.stripGains().at(info.maxIndex())                  );
+		      qualityisbad->push_back( info.IsAnythingBad()                                    );
+	 
+      rawchargeC->push_back(   digis.max            );
+      rawchargeL->push_back(   digis.left           );
+      rawchargeR->push_back(   digis.right          );
+      rawchargeLL->push_back(  digis.Lleft          );
+      rawchargeRR->push_back(  digis.Rright         );
+      etaX->push_back(         digis.etaX()         );
+      eta->push_back(          digis.eta()          );
+      etaasymm->push_back(     digis.etaasymm()     );
+      outsideasymm->push_back( digis.outsideasymm() );
+      neweta->push_back(       (digis.last-digis.first)/info.charge() );
+      newetaerr->push_back(    (sqrt(digis.last+digis.first))/pow(info.charge(),1.5) );
+
+
+
+      detid->push_back(            id                 );
+      subdetid->push_back(         moduleV.subdetid      );
+      side->push_back(             moduleV.side          );
+      module->push_back(           moduleV.module        );
+      layerwheel->push_back(       moduleV.layerwheel    );
+      stringringrod->push_back(    moduleV.stringringrod );
+      petal->push_back(            moduleV.petal         );
+      stereo->push_back(           moduleV.stereo        );
+
+
+      stripLength->push_back(           theStripDet->specificTopology().stripLength() );
+      thickness->push_back(             theStripDet->specificSurface().bounds().thickness() );
+
+//}
+
+
 				trackmulti->push_back(  nassociations );
 				trackindex->push_back(  trk_idx );
 				localtheta->push_back(  (theStripDet->toLocal(tsos.globalDirection())).theta() ); 
@@ -227,7 +425,8 @@ produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   } //for(TrajTrackAssociationCollection::const_iterator association = associations->begin();
 
-  iEvent.put(std::move(clusterIdx        ), Prefix + "clusterIdx" + Suffix );
+/*  iEvent.put(std::move(clusterIdx        ), Prefix + "clusterIdx" + Suffix );
+  iEvent.put(std::move(charge),      Prefix + "charge"   + Suffix      );
   iEvent.put(std::move(onTrkClusterIdx   ), Prefix + "onTrkClusterIdx" + Suffix );
   iEvent.put(std::move(onTrkClustersBegin), Prefix + "onTrkClustersBegin" + Suffix );
   iEvent.put(std::move(onTrkClustersEnd  ), Prefix + "onTrkClustersEnd" + Suffix );
@@ -265,4 +464,121 @@ produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(std::move(drifty),      Prefix + "drifty"      + Suffix );
   iEvent.put(std::move(driftz),      Prefix + "driftz"      + Suffix );
   iEvent.put(std::move(globalZofunitlocalY), Prefix + "globalZofunitlocalY" + Suffix );
+*/
+
+  iEvent.put(std::move(number),      Prefix + "number"       );
+  iEvent.put(std::move(width),       Prefix + "width"        );
+  iEvent.put(std::move(variance),    Prefix + "variance"     );
+  iEvent.put(std::move(barystrip),   Prefix + "barystrip"    );
+  iEvent.put(std::move(middlestrip), Prefix + "middlestrip"  );
+  iEvent.put(std::move(charge),      Prefix + "charge"       );
+  iEvent.put(std::move(noise),       Prefix + "noise"        );
+  iEvent.put(std::move(ston),        Prefix + "ston"         );
+  iEvent.put(std::move(seedstrip),   Prefix + "seedstrip"    );
+  iEvent.put(std::move(seedindex),   Prefix + "seedindex"    );
+  iEvent.put(std::move(seedcharge),  Prefix + "seedcharge"   );
+  iEvent.put(std::move(seednoise),   Prefix + "seednoise"    );
+  iEvent.put(std::move(seedgain),    Prefix + "seedgain"     );
+  iEvent.put(std::move(qualityisbad),Prefix + "qualityisbad" );
+
+  iEvent.put(std::move(rawchargeC),  Prefix + "rawchargeC"   );
+  iEvent.put(std::move(rawchargeL),  Prefix + "rawchargeL"   );
+  iEvent.put(std::move(rawchargeR),  Prefix + "rawchargeR"   );
+  iEvent.put(std::move(rawchargeLL), Prefix + "rawchargeLL"  );
+  iEvent.put(std::move(rawchargeRR), Prefix + "rawchargeRR"  );
+  iEvent.put(std::move(etaX),        Prefix + "etaX"         );
+  iEvent.put(std::move(eta),         Prefix + "eta"          );
+  iEvent.put(std::move(foldedeta),   Prefix + "foldedeta"    );
+  iEvent.put(std::move(etaasymm),    Prefix + "etaasymm"     );
+  iEvent.put(std::move(outsideasymm),Prefix + "outsideasymm" );
+  iEvent.put(std::move(neweta),      Prefix + "neweta"       );
+  iEvent.put(std::move(newetaerr),   Prefix + "newetaerr"    );
+
+  iEvent.put(std::move(detid),        Prefix + "detid"         );
+  iEvent.put(std::move(subdetid),     Prefix + "subdetid"      );
+  iEvent.put(std::move(module),       Prefix + "module"        );
+  iEvent.put(std::move(side),         Prefix + "side"          );
+  iEvent.put(std::move(layerwheel),   Prefix + "layerwheel"    );
+  iEvent.put(std::move(stringringrod),Prefix + "stringringrod" );
+  iEvent.put(std::move(petal),        Prefix + "petal"         );
+  iEvent.put(std::move(stereo),       Prefix + "stereo"        );
+  //iEvent.put(std::move(stripLength),       Prefix + "stripLength"        );
+  //iEvent.put(std::move(thickness),       Prefix + "thickness"        );
+
+  iEvent.put(std::move(PU),       "PU"        );
+  iEvent.put(std::move(bx),       "bx"        );
+
+
+}
+
+ShallowTrackClustersProducer::NearDigis::
+NearDigis(const SiStripClusterInfo& info) {
+  max =  info.maxCharge();
+  left =           info.maxIndex()    > uint16_t(0)                ? info.stripCharges()[info.maxIndex()-1]      : 0 ;
+  Lleft =          info.maxIndex()    > uint16_t(1)                ? info.stripCharges()[info.maxIndex()-2]      : 0 ;
+  right=  unsigned(info.maxIndex()+1) < info.stripCharges().size() ? info.stripCharges()[info.maxIndex()+1]      : 0 ;
+  Rright= unsigned(info.maxIndex()+2) < info.stripCharges().size() ? info.stripCharges()[info.maxIndex()+2]      : 0 ;
+  first = info.stripCharges()[0];
+  last =  info.stripCharges()[info.width()-1];
+}
+
+ShallowTrackClustersProducer::NearDigis::
+NearDigis(const SiStripClusterInfo& info, const edm::DetSetVector<SiStripProcessedRawDigi>& rawProcessedDigis) {
+  edm::DetSetVector<SiStripProcessedRawDigi>::const_iterator digiframe = rawProcessedDigis.find(info.detId());
+  if( digiframe != rawProcessedDigis.end()) {
+    max =                                                            digiframe->data.at(info.maxStrip()).adc()       ;
+    left =            info.maxStrip()    > uint16_t(0)             ? digiframe->data.at(info.maxStrip()-1).adc() : 0 ;
+    Lleft =           info.maxStrip()    > uint16_t(1)             ? digiframe->data.at(info.maxStrip()-2).adc() : 0 ;
+    right =  unsigned(info.maxStrip()+1) < digiframe->data.size()  ? digiframe->data.at(info.maxStrip()+1).adc() : 0 ;
+    Rright = unsigned(info.maxStrip()+2) < digiframe->data.size()  ? digiframe->data.at(info.maxStrip()+2).adc() : 0 ;
+    first = digiframe->data.at(info.firstStrip()).adc();
+    last = digiframe->data.at(info.firstStrip()+info.width() - 1).adc();
+  } else {
+    *this = NearDigis(info);
+  }
+}
+
+ShallowTrackClustersProducer::moduleVars::
+moduleVars(uint32_t detid, const TrackerTopology* tTopo) {
+  SiStripDetId subdet(detid);
+  subdetid = subdet.subDetector();
+  if( SiStripDetId::TIB == subdetid ) {
+    
+    module        = tTopo->tibModule(detid); 
+    side          = tTopo->tibIsZMinusSide(detid)?-1:1;  
+    layerwheel    = tTopo->tibLayer(detid); 
+    stringringrod = tTopo->tibString(detid); 
+    stereo        = tTopo->tibIsStereo(detid) ? 1 : 0;
+  } else
+  if( SiStripDetId::TID == subdetid ) {
+    
+    module        = tTopo->tidModule(detid); 
+    side          = tTopo->tidIsZMinusSide(detid)?-1:1;  
+    layerwheel    = tTopo->tidWheel(detid); 
+    stringringrod = tTopo->tidRing(detid); 
+    stereo        = tTopo->tidIsStereo(detid) ? 1 : 0;
+  } else
+  if( SiStripDetId::TOB == subdetid ) {
+    
+    module        = tTopo->tobModule(detid); 
+    side          = tTopo->tobIsZMinusSide(detid)?-1:1;  
+    layerwheel    = tTopo->tobLayer(detid); 
+    stringringrod = tTopo->tobRod(detid); 
+    stereo        = tTopo->tobIsStereo(detid) ? 1 : 0;
+  } else
+  if( SiStripDetId::TEC == subdetid ) {
+    
+    module        = tTopo->tecModule(detid); 
+    side          = tTopo->tecIsZMinusSide(detid)?-1:1;  
+    layerwheel    = tTopo->tecWheel(detid); 
+    stringringrod = tTopo->tecRing(detid); 
+    petal         = tTopo->tecPetalNumber(detid); 
+    stereo        = tTopo->tecIsStereo(detid) ? 1 : 0;
+  } else {
+    module = 0;
+    side = 0;
+    layerwheel=-1;
+    stringringrod = -1;
+    petal=-1;
+  }
 }
