@@ -74,6 +74,8 @@
 #include <iostream>
 #include <fstream>
 
+#include "TMath.h"
+
 using namespace std;
 
 
@@ -224,6 +226,7 @@ ShallowTrackClustersProducerCombinedVR::ShallowTrackClustersProducerCombinedVR(c
   produces <std::vector<float> >         ( "CTstripChargelocalpitch"        );
   produces <std::vector<float> >         ( "CTstripChargesensorThickness"        );
   produces <std::vector<float> >         ( "CTstripChargeTotCharge"        );
+  produces <std::vector<float> >         ( "CTstripChargeTotChargeRescaled"        );
   produces <std::vector<float> >         ( "CTstripChargeTotWidth"        );
   produces <std::vector<float> >         ( "CTCmbtimeVtxr"        );
   produces <std::vector<float> >         ( "CTCmbtimeVtxrErr"        );
@@ -260,6 +263,7 @@ ShallowTrackClustersProducerCombinedVR::ShallowTrackClustersProducerCombinedVR(c
   produces <std::vector<float> >    (   "CTnrOfMuHits"        );
   produces <std::vector<float> >    (   "CTsectorsOfDT"        );
 
+  produces <std::vector<float> >    (   "CTMuOrigin"        );
 
   produces <std::vector<float> >        ( "PU"       );
   produces <std::vector<unsigned int> > ( "bx"       );
@@ -305,6 +309,10 @@ ShallowTrackClustersProducerCombinedVR::ShallowTrackClustersProducerCombinedVR(c
 
 
   produces <std::vector<float> >              ( "tzeroMinTimeInOut"       );
+  produces <std::vector<float> >              ( "tzeroMinTimeOutIn"       );
+
+
+  produces <std::vector<float> >              ( "muOrigin"       );
 
 /*  produces <bool>              ("passHLTL1SingleMu3v1" ); 
   produces <bool>              ( "passHLTL1SingleMu5v1" ); 
@@ -444,6 +452,7 @@ produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto       CTstripChargelocalpitch   = std::make_unique<std::vector<float>>();
   auto       CTstripChargesensorThickness   = std::make_unique<std::vector<float>>();
   auto       CTstripChargeTotCharge   = std::make_unique<std::vector<float>>();
+  auto       CTstripChargeTotChargeRescaled   = std::make_unique<std::vector<float>>();
   auto       CTstripChargeTotWidth   = std::make_unique<std::vector<float>>();
 
   auto       CTCmbtimeVtxr  = std::make_unique<std::vector<float>>();
@@ -480,6 +489,9 @@ produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto  CTDTlayer4 = std::make_unique<std::vector<float>>();
   auto  CTnrOfMuHits = std::make_unique<std::vector<float>>();
   auto   CTsectorsOfDT= std::make_unique<std::vector<float>>();
+
+
+  auto  CTMuOrigin  = std::make_unique<std::vector<float>>();
 
   auto         muonsDTMuontrackDirection = std::make_unique<std::vector<float>>();
   auto         muonsDTMuontrackSector= std::make_unique<std::vector<float>>();
@@ -522,6 +534,9 @@ produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
 
   auto                 tzeroMinTimeInOut=  std::make_unique<std::vector<float>>();
+  auto                 tzeroMinTimeOutIn=  std::make_unique<std::vector<float>>();
+
+  auto                 muOrigin =  std::make_unique<std::vector<float>>();
 
 /*  auto passHLTL1SingleMu3v1 = std::make_unique<bool>(); 
   auto passHLTL1SingleMu5v1 =  std::make_unique<bool>(); 
@@ -647,6 +662,10 @@ cout << "before good track " << endl;
      //muon hits
      //reco::TrackRef muTrack = muonR->standAloneMuon();
      bool topOnly = true;
+     bool bottomOnly = true;
+     bool topMu = false;
+     bool bottomMu = false;
+     bool bothMu = false;
      bool DTlayer0 = false;
      bool DTlayer1 = false;
      bool DTlayer2 = false;
@@ -680,8 +699,28 @@ cout << "before good track " << endl;
                  nrOfMuHits++; //it is probably not completely correct
                  if(std::find(sectorsOfDT.begin(), sectorsOfDT.end(), DTchamber.sector()) == sectorsOfDT.end())
                      sectorsOfDT.push_back(DTchamber.sector());
-                 if( !( (DTchamber.sector()>1 && DTchamber.sector()<7) || (DTchamber.sector() == 13) ) )
+                 //if( !( (DTchamber.sector()>1 && DTchamber.sector()<7) || (DTchamber.sector() == 13) ) )
+                 if( !( (DTchamber.sector()>6 && DTchamber.sector()<13) || (DTchamber.sector() == 14) ) )
+                     bottomOnly = false;
+                 if( !( (DTchamber.sector()>0 && DTchamber.sector()<7) || (DTchamber.sector() == 13) ) )
                      topOnly = false;
+
+                 if( topOnly == true && bottomOnly == false)
+                 {
+                     muOrigin->push_back(1);
+                     topMu = true;
+                 }
+                 else if( topOnly == false && bottomOnly == true)
+                 {
+                     muOrigin->push_back(2);
+                     bottomMu = true;
+                 }
+                 else if( topOnly == false && bottomOnly == false)
+                 {
+                     muOrigin->push_back(3);
+                     bothMu = true;
+                 }
+
                  if(DTLayer.layer() == 0)
                      DTlayer0=true;
                  if(DTLayer.layer() == 1)
@@ -694,7 +733,8 @@ cout << "before good track " << endl;
                      DTlayer4=true;
              }
          }
-             if(topOnly)
+             //if(topOnly)
+             if(true)
              {
               cout << "nr of hits standalone " << muTrackSA->recHitsSize() << " nr of time measurements in DT " << timeMapDT[muonR].timeAtIpInOutHIT().size() << " nr of time measurements combined " << timeMapCmb[muonR].timeAtIpInOutHIT().size() << endl;
               cout << "nr of hits combined " << muonR->combinedMuon()->recHitsSize() << " nr of time measurements in DT " << timeMapDT[muonR].timeAtIpInOutHIT().size() << " nr of time measurements combined " << timeMapCmb[muonR].timeAtIpInOutHIT().size() << endl;
@@ -719,13 +759,14 @@ cout << "before good track " << endl;
                  for(uint32_t tzero = 0; tzero< timeMapDT[muonR].timeAtIpInOutHIT().size(); tzero++)
                  {
                      tzeroMinTimeInOut->push_back(timeMapDT[muonR].timeAtIpInOutHIT().at(tzero) - timeMapDT[muonR].timeAtIpInOut() );
+                     tzeroMinTimeOutIn->push_back(timeMapDT[muonR].timeAtIpOutInHIT().at(tzero) - timeMapDT[muonR].timeAtIpOutIn() );
                  }
 
              }
      }
 
-   if(topOnly == false) //@MJ@ TODO not forget to remove that
-         continue;
+   //if(topOnly == false) //@MJ@ TODO not forget to remove that
+   //      continue;
 
   
    if(muTrack.isNull()) //only global muons
@@ -945,17 +986,40 @@ cout << " after good track " << endl;
 
       for(int32_t x=-2; x<3; x++)
       {
-          if( baryStrip+x < 0 || (int)baryStrip+x > (int) (vRawDigis.size()-1) )
+          if(isData)
           {
-              CTstripCharge->push_back(-333);
-              //h1CTCluster_->Fill(baryStrip+x, -333 );
-          }
-          else
-          {
-              CTstripCharge->push_back(vRawDigis.at(baryStrip+x) - vCMN.at(baryStrip+x));
-              //h1CTCluster_->Fill(baryStrip+x, vRawDigis.at(baryStrip+x) - vCMN.at(baryStrip+x) );
-              cout << "strip nr  " << baryStrip+x << " value " << vRawDigis.at(baryStrip+x) - vCMN.at(baryStrip+x) << endl;
-          }
+		  if( baryStrip+x < 0 || (int)baryStrip+x > (int) (vRawDigis.size()-1) )
+		  {
+		      CTstripCharge->push_back(-333);
+		      //h1CTCluster_->Fill(baryStrip+x, -333 );
+		  }
+		  else
+		  {
+		      CTstripCharge->push_back(vRawDigis.at(baryStrip+x) - vCMN.at(baryStrip+x));
+		      //h1CTCluster_->Fill(baryStrip+x, vRawDigis.at(baryStrip+x) - vCMN.at(baryStrip+x) );
+		      cout << "strip nr  " << baryStrip+x << " value " << vRawDigis.at(baryStrip+x) - vCMN.at(baryStrip+x) << endl;
+		  }
+           }
+           else
+           {
+		   bool stripFound = false;
+		   for(std::map<float,int>::iterator it=chargeStrip.begin(); it!=chargeStrip.end(); it++)
+		   {
+		       if(it->second == baryStrip+x)
+		       {
+			   CTstripCharge->push_back(it->first);
+			   stripFound = true;                  
+		           cout << " ZS strip nr  " << baryStrip+x << " value " << it->first  << endl;
+		       }
+		   }
+		   if(!stripFound)
+                   {
+		       CTstripCharge->push_back(-333);
+                       
+		       cout << " ZS strip nr  " << baryStrip+x << " value " << -333  << endl;
+                   }
+           }
+     
               CTstripChargeLocalTrackPhi->push_back(  (theStripDet->toLocal(tsos.globalDirection())).phi());
               CTstripChargeLocalTrackTheta->push_back(  (theStripDet->toLocal(tsos.globalDirection())).theta());
               CTstripChargeSubdetid->push_back(moduleV.subdetid);
@@ -1000,6 +1064,16 @@ cout << " after good track " << endl;
               CTDTFreeInverseBeta->push_back(timedt.freeInverseBeta());
               //CTMuontrackPhi->push_back((*glbTrack).phi());
 
+              if(topMu == true)
+                  CTMuOrigin->push_back(1);
+              else if(bottomMu == true)
+                  CTMuOrigin->push_back(2);
+              else if(bothMu == true)
+                  CTMuOrigin->push_back(3);
+
+              float rescaledCharge =    info.charge()/ (theStripDet->specificSurface().bounds().thickness() / TMath::Abs(TMath::Cos(theStripDet->toLocal(tsos.globalDirection()).theta())) );
+              CTstripChargeTotChargeRescaled->push_back( rescaledCharge);
+              
 
               if(outerXtop->size() != 0)
               {
@@ -1227,6 +1301,7 @@ cout << " after good track " << endl;
   iEvent.put(std::move(CTstripChargelocalpitch),       "CTstripChargelocalpitch"        );
   iEvent.put(std::move(CTstripChargesensorThickness),       "CTstripChargesensorThickness"        );
   iEvent.put(std::move(CTstripChargeTotCharge),       "CTstripChargeTotCharge"        );
+  iEvent.put(std::move(CTstripChargeTotChargeRescaled),       "CTstripChargeTotChargeRescaled"        );
   iEvent.put(std::move(CTstripChargeTotWidth),       "CTstripChargeTotWidth"        );
   iEvent.put(std::move(PU),       "PU"        );
   iEvent.put(std::move(bx),       "bx"        );
@@ -1268,6 +1343,9 @@ cout << " after good track " << endl;
   iEvent.put(std::move(CTnrOfMuHits),       "CTnrOfMuHits"        );
   iEvent.put(std::move(CTsectorsOfDT),       "CTsectorsOfDT"        );
 
+
+  iEvent.put(std::move(CTMuOrigin),       "CTMuOrigin"        );
+
   iEvent.put(std::move(muonsDTMuontrackDirection),       "muonsDTMuontrackDirection"        );
   iEvent.put(std::move(muonsDTMuontrackSector),       "muonsDTMuontrackSector"        );
 
@@ -1303,6 +1381,9 @@ cout << " after good track " << endl;
 
   //just for tests
   iEvent.put(std::move(tzeroMinTimeInOut),       "tzeroMinTimeInOut"        );
+  iEvent.put(std::move(tzeroMinTimeOutIn),       "tzeroMinTimeOutIn"        );
+
+  iEvent.put(std::move(muOrigin),       "muOrigin"        );
 
   /*iEvent.put(std::move(passHLTL1SingleMu3v1), "passHLTL1SingleMu3v1" ); 
   iEvent.put(std::move(passHLTL1SingleMu5v1), "passHLTL1SingleMu5v1" ); 
