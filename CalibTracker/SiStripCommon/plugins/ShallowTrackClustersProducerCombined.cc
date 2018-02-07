@@ -1,34 +1,6 @@
-#include "CalibTracker/SiStripCommon/interface/ShallowTrackClustersProducerCombinedVR.h"
-#include "FWCore/Utilities/interface/isFinite.h"
-
-#include "RecoMuon/TrackingTools/interface/MuonServiceProxy.h"
-
-#include "DataFormats/Common/interface/Ref.h"
-
-#include "DataFormats/GeometryVector/interface/GlobalPoint.h"
-#include "Geometry/Records/interface/MuonGeometryRecord.h"
-
-
-#include <Geometry/CSCGeometry/interface/CSCLayer.h>
-#include <DataFormats/MuonDetId/interface/CSCDetId.h>
-#include <DataFormats/CSCRecHit/interface/CSCRecHit2D.h>
-#include <DataFormats/CSCRecHit/interface/CSCRangeMapAccessor.h>
-
-#include "CommonTools/Statistics/interface/ChiSquaredProbability.h"
-#include "DataFormats/MuonReco/interface/MuonCocktails.h"
-#include "DataFormats/MuonReco/interface/MuonTimeExtra.h"
-#include "DataFormats/MuonReco/interface/MuonTimeExtraMap.h"
-
-#include "Geometry/Records/interface/GlobalTrackingGeometryRecord.h"
-#include "Geometry/CommonDetUnit/interface/GlobalTrackingGeometry.h"
-
-#include "DataFormats/TrackingRecHit/interface/TrackingRecHitFwd.h"
-#include "DataFormats/TrackReco/interface/TrackExtra.h"
-
-#include "FWCore/MessageLogger/interface/MessageLogger.h"
+#include "CalibTracker/SiStripCommon/interface/ShallowTrackClustersProducerCombined.h"
 
 #include "CalibTracker/SiStripCommon/interface/ShallowTools.h"
-
 
 #include "TrackingTools/PatternTools/interface/Trajectory.h"
 #include "TrackingTools/TrackFitters/interface/TrajectoryStateCombiner.h"
@@ -54,49 +26,24 @@
 #include "DataFormats/SiStripDigi/interface/SiStripProcessedRawDigi.h"
 #include "FWCore/Common/interface/TriggerNames.h"
 
-#include "DataFormats/MuonDetId/interface/DTLayerId.h"
-#include "DataFormats/MuonDetId/interface/DTChamberId.h"
-#include "DataFormats/MuonDetId/interface/DTWireId.h"
-#include "Geometry/DTGeometry/interface/DTGeometry.h"
-#include "Geometry/DTGeometry/interface/DTLayer.h"
-#include "Geometry/DTGeometry/interface/DTSuperLayer.h"
-#include "Geometry/DTGeometry/src/DTTopology.cc"
-
-#include "DataFormats/DTRecHit/interface/DTSLRecSegment2D.h"
-#include "RecoLocalMuon/DTSegment/src/DTSegmentUpdator.h"
-#include "RecoLocalMuon/DTSegment/src/DTSegmentCleaner.h"
-#include "RecoLocalMuon/DTSegment/src/DTHitPairForFit.h"
-#include "RecoLocalMuon/DTSegment/src/DTSegmentCand.h"
-#include "Geometry/Records/interface/DTRecoGeometryRcd.h"
-
 #include "CalibTracker/Records/interface/SiStripDependentRecords.h"
 #include <map>
 #include <iostream>
 #include <fstream>
 
-#include "TMath.h"
-
 using namespace std;
 
+uint32_t ev2=0;
+unsigned int ntracks2 =0;
 
-  //ofstream myfile2;
+  ofstream myfile2;
 
-ShallowTrackClustersProducerCombinedVR::ShallowTrackClustersProducerCombinedVR(const edm::ParameterSet& iConfig)
+ShallowTrackClustersProducerCombined::ShallowTrackClustersProducerCombined(const edm::ParameterSet& iConfig)
   :  tracks_token_(consumes<edm::View<reco::Track> >(iConfig.getParameter<edm::InputTag>("Tracks"))),
      association_token_(consumes<TrajTrackAssociationCollection>(iConfig.getParameter<edm::InputTag>("Tracks"))),
      clusters_token_( consumes< edmNew::DetSetVector<SiStripCluster> >( iConfig.getParameter<edm::InputTag>("Clusters") ) ),
      theVertexToken_(consumes<std::vector<reco::Vertex> >          (iConfig.getParameter<edm::InputTag>("vertices"))),
-     CombinedTimeTokens_(consumes<reco::MuonTimeExtraMap>          (iConfig.getParameter<edm::InputTag>("CombinedTiming"))),
-     DtTimeTokens_(consumes<reco::MuonTimeExtraMap>          (iConfig.getParameter<edm::InputTag>("DtTiming"))),
-     CscTimeTokens_(consumes<reco::MuonTimeExtraMap>          (iConfig.getParameter<edm::InputTag>("CscTiming"))),
-     MuonTokens_(consumes<std::vector<reco::Muon> >          (iConfig.getParameter<edm::InputTag>("Muons"))),
      theDigisToken_    (consumes<edm::DetSetVector<SiStripProcessedRawDigi> > (edm::InputTag("siStripProcessedRawDigis", ""))),
-     //theRawDigisToken_    (consumes<edm::DetSetVector<SiStripRawDigi> > (edm::InputTag("siStripDigis", "VirginRaw"))),
-     //theRawDigisToken_    (consumes<edm::DetSetVector<SiStripRawDigi> > (edm::InputTag("siStripZeroSuppression", "VirginRaw"))),
-     theRawDigisToken_    (consumes<edm::DetSetVector<SiStripRawDigi> > (edm::InputTag("siStripZeroSuppression", "PEDSUBADCVirginRaw"))),
-     theCMNToken_    (consumes<edm::DetSetVector<SiStripProcessedRawDigi> > (edm::InputTag("siStripZeroSuppression", "APVCMVirginRaw"))),
-     srcZSdigi_    (consumes<edm::DetSetVector<SiStripDigi> > (edm::InputTag("siStripZeroSuppression", "VirginRaw"))),
-     //srcZSdigi_    (consumes<edm::DetSetVector<SiStripDigi> > (edm::InputTag("siStripDigis", "ZeroSuppressed"))), //"siStripDigis"              "ZeroSuppressed"
      //theTriggerToken_    (consumes<edm::TriggerResults > (edm::InputTag("TriggerResults","","HLT"))),
      Suffix       ( iConfig.getParameter<std::string>("Suffix")    ),
      Prefix       ( iConfig.getParameter<std::string>("Prefix") ),
@@ -106,8 +53,6 @@ ShallowTrackClustersProducerCombinedVR::ShallowTrackClustersProducerCombinedVR(c
      //highBound       ( iConfig.getParameter<int32_t>("highBound") ),
      //filename       ( iConfig.getParameter<std::string>("filename") )
 {
-
-  //cout << "constructor fine " << endl;
   produces<std::vector<int> > ( Suffix + "clusterIdx"    ); //link: on trk cluster --> general cluster info 
   produces<std::vector<int> > ( Suffix + "onTrkClusterIdx" ); //link: general cluster info --> on track cluster
 	produces <std::vector<int> > ( Suffix + "onTrkClustersBegin"  ); //link: track --> onTrkInfo (range)
@@ -218,108 +163,12 @@ ShallowTrackClustersProducerCombinedVR::ShallowTrackClustersProducerCombinedVR(c
   produces <std::vector<float> >         ( Prefix + "stripChargelocalpitch"        );
   produces <std::vector<float> >         ( Prefix + "stripChargesensorThickness"        );
   produces <std::vector<float> >         ( Prefix + "stripChargeBdotY"        );
-  produces <std::vector<float> >         ( "CTstripCharge"        );
-  produces <std::vector<float> >         ( "CTstripChargeLocalTrackPhi"        );
-  produces <std::vector<float> >         ( "CTstripChargeLocalTrackTheta"        );
-  produces <std::vector<float> >         ( "CTstripChargeSubdetid"        );
-  produces <std::vector<float> >         ( "CTstripChargeLayerwheel"        );
-  produces <std::vector<float> >         ( "CTstripChargelocalpitch"        );
-  produces <std::vector<float> >         ( "CTstripChargesensorThickness"        );
-  produces <std::vector<float> >         ( "CTstripChargeTotCharge"        );
-  produces <std::vector<float> >         ( "CTstripChargeTotChargeRescaled"        );
-  produces <std::vector<float> >         ( "CTstripChargeTotWidth"        );
-  produces <std::vector<float> >         ( "CTCmbtimeVtxr"        );
-  produces <std::vector<float> >         ( "CTCmbtimeVtxrErr"        );
-  produces <std::vector<float> >         ( "CTCombinedTimeOutInInOutDiffErr"        );
-  produces <std::vector<float> >         ( "CTCombinedTimeOutInInOutDiff"        );
-  produces <std::vector<float> >         ( "CTDttimeVtxr"        );
-  produces <std::vector<float> >         ( "CTDttimeVtxrErr"        );
-  produces <std::vector<float> >         ( "CTCsctimeVtxr"        );
-  produces <std::vector<float> >         ( "CTCsctimeVtxrErr"        );
-  produces <std::vector<float> >         ( "CTCmbtimeVtx"        );
-  produces <std::vector<float> >         ( "CTCmbtimeVtxErr"        );
-  produces <std::vector<float> >         ( "CTDttimeVtx"        );
-  produces <std::vector<float> >         ( "CTDttimeVtxErr"        );
-  produces <std::vector<float> >         ( "CTCsctimeVtx"        );
-  produces <std::vector<float> >         ( "CTCsctimeVtxErr"        );
-
-  produces <std::vector<float> >         ( "CTCombinedTimeTop"        );
-  produces <std::vector<float> >         ( "CTCombinedTimeBottom"        );
-
-  produces <std::vector<float> >         ( "CTMuontrackDirection"        );
-  produces <std::vector<float> >         ( "CTDTMuontrackDirection"        );
-  produces <std::vector<float> >         ( "CTMuonCombinedInverseBeta"        );
-  produces <std::vector<float> >         ( "CTMuonCombinedFreeInverseBeta"        );
-  produces <std::vector<float> >         ( "CTDTFreeInverseBeta"        );
-  //produces <std::vector<float> >         ( "CTMuontrackPhi"        );
-  produces <std::vector<float> >         ( "CTCombinedTimeForInOut"        );
-  produces <std::vector<float> >         ( "CTCombinedTimeForOutIn"        );
-
-  produces <std::vector<float> >    (   "CTDTlayer0"        );
-  produces <std::vector<float> >    (   "CTDTlayer1"        );
-  produces <std::vector<float> >    (  "CTDTlayer2"        );
-  produces <std::vector<float> >    (   "CTDTlayer3"        );
-  produces <std::vector<float> >    (   "CTDTlayer4"        );
-  produces <std::vector<float> >    (   "CTnrOfMuHits"        );
-  produces <std::vector<float> >    (   "CTsectorsOfDT"        );
-
-  produces <std::vector<float> >    (   "CTMuOrigin"        );
 
   produces <std::vector<float> >        ( "PU"       );
   produces <std::vector<unsigned int> > ( "bx"       );
 
-
-  produces <std::vector<float> >         ( "muonsDTMuontrackDirection"        );
-  produces <std::vector<float> >         ( "muonsDTMuontrackSector"        );
-
-  produces <std::vector<float> >         ( "muonsDTMuontrackInOut"        );
-  produces <std::vector<float> >         ( "muonsDTMuontrackOutIn"        );
-
   produces <unsigned int>               ( "nroftracks"       );
-  produces <unsigned int>               ( "nrofmuons"       );
   produces <unsigned int>               ( "nrofevents"       );
-
-
-
-  produces <std::vector<float> >               ( "muonsDTMuontrackInOutTop"       );
-  produces <std::vector<float> >              ( "muonsDTMuontrackInOutErrTop"       );
-  produces <std::vector<float> >              ( "muonsDTMuontrackOutInTop"       );
-  produces <std::vector<float> >              ( "muonsDTMuontrackOutInErrTop"       );
-  produces <std::vector<float> >              ( "innerXtop"       );
-  produces <std::vector<float> >              ( "innerYtop"       );
-  produces <std::vector<float> >              ( "innerZtop"       );
-  produces <std::vector<float> >              ( "innerVZtop"       );
-  produces <std::vector<float> >              ( "innerVX"       );
-  produces <std::vector<float> >              ( "innerVY"       );
-  produces <std::vector<float> >              ( "Etatop"       );
-  produces <std::vector<float> >              ( "outerXtop"       );
-  produces <std::vector<float> >              ( "outerYtop"       );
-  produces <std::vector<float> >              ( "outerZtop"       );
-  produces <std::vector<float> >              ( "outerEtatop"       );
-  produces <std::vector<float> >              ( "muonsDTMuontrackLastWheel"       );
-
-  produces <std::vector<float> >              ( "CTouterXtop"       );
-  produces <std::vector<float> >              ( "CTouterYtop"       );
-  produces <std::vector<float> >              ( "CTouterZtop"       );
-  produces <std::vector<float> >              ( "CTouterEtatop"       );
-  produces <std::vector<float> >              ( "CTinnerXtop"       );
-  produces <std::vector<float> >              ( "CTinnerYtop"       );
-  produces <std::vector<float> >              ( "CTinnerZtop"       );
-  produces <std::vector<float> >              ( "CTinnerVZtop"       );
-  produces <std::vector<float> >              ( "CTinnerVX"       );
-  produces <std::vector<float> >              ( "CTinnerVY"       );
-  produces <std::vector<float> >              ( "CTEtatop"       );
-  produces <std::vector<float> >              ( "CTtof"       );
-  produces <std::vector<float> >              ( "CTtofImproved"       );
-  produces <std::vector<float> >              ( "CTmuonsDTMuontrackLastWheel"       );
-
-
-  produces <std::vector<float> >              ( "tzeroMinTimeInOut"       );
-  produces <std::vector<float> >              ( "tzeroMinTimeOutIn"       );
-
-
-  produces <std::vector<float> >              ( "muOrigin"       );
-
 /*  produces <bool>              ("passHLTL1SingleMu3v1" ); 
   produces <bool>              ( "passHLTL1SingleMu5v1" ); 
   produces <bool>              ("passHLTL1SingleMu7v1" );
@@ -330,7 +179,7 @@ ShallowTrackClustersProducerCombinedVR::ShallowTrackClustersProducerCombinedVR(c
   //
 }
 
-void ShallowTrackClustersProducerCombinedVR::
+void ShallowTrackClustersProducerCombined::
 produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   shallow::CLUSTERMAP clustermap = shallow::make_cluster_map(iEvent, clusters_token_);
   edm::Handle<edm::View<reco::Track> > tracks;	             iEvent.getByToken(tracks_token_, tracks);	  
@@ -450,106 +299,11 @@ produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto       stripChargelocalpitch    = std::make_unique<std::vector<float>>();
   auto       stripChargesensorThickness    = std::make_unique<std::vector<float>>();
   auto       stripChargeBdotY   = std::make_unique<std::vector<float>>();
-  auto       CTstripCharge   = std::make_unique<std::vector<float>>();
-  auto       CTstripChargeLocalTrackPhi   = std::make_unique<std::vector<float>>();
-  auto       CTstripChargeLocalTrackTheta   = std::make_unique<std::vector<float>>();
-  auto       CTstripChargeSubdetid   = std::make_unique<std::vector<float>>();
-  auto       CTstripChargeLayerwheel   = std::make_unique<std::vector<float>>();
-  auto       CTstripChargelocalpitch   = std::make_unique<std::vector<float>>();
-  auto       CTstripChargesensorThickness   = std::make_unique<std::vector<float>>();
-  auto       CTstripChargeTotCharge   = std::make_unique<std::vector<float>>();
-  auto       CTstripChargeTotChargeRescaled   = std::make_unique<std::vector<float>>();
-  auto       CTstripChargeTotWidth   = std::make_unique<std::vector<float>>();
-
-  auto       CTCmbtimeVtxr  = std::make_unique<std::vector<float>>();
-  auto       CTCmbtimeVtxrErr  = std::make_unique<std::vector<float>>();
-  auto       CTDttimeVtxr = std::make_unique<std::vector<float>>();
-  auto       CTDttimeVtxrErr   = std::make_unique<std::vector<float>>();
-  auto       CTCsctimeVtxr   = std::make_unique<std::vector<float>>();
-  auto       CTCsctimeVtxrErr   = std::make_unique<std::vector<float>>();
-
-  auto       CTCmbtimeVtx  = std::make_unique<std::vector<float>>();
-  auto       CTCmbtimeVtxErr  = std::make_unique<std::vector<float>>();
-  auto       CTDttimeVtx = std::make_unique<std::vector<float>>();
-  auto       CTDttimeVtxErr   = std::make_unique<std::vector<float>>();
-  auto       CTCsctimeVtx   = std::make_unique<std::vector<float>>();
-  auto       CTCsctimeVtxErr   = std::make_unique<std::vector<float>>();
-
-  auto       CTCombinedTimeTop   = std::make_unique<std::vector<float>>();
-  auto       CTCombinedTimeBottom   = std::make_unique<std::vector<float>>();
-  auto       CTMuontrackDirection   = std::make_unique<std::vector<float>>();
-  auto       CTDTMuontrackDirection   = std::make_unique<std::vector<float>>();
-  auto        CTMuonCombinedInverseBeta  = std::make_unique<std::vector<float>>();
-  auto        CTMuonCombinedFreeInverseBeta  = std::make_unique<std::vector<float>>();
-  auto        CTDTFreeInverseBeta  = std::make_unique<std::vector<float>>();
-  //auto       CTMuontrackPhi   = std::make_unique<std::vector<float>>();
-  auto       CTCombinedTimeForInOut   = std::make_unique<std::vector<float>>();
-  auto       CTCombinedTimeForOutIn   = std::make_unique<std::vector<float>>();
-  auto       CTCombinedTimeOutInInOutDiff   = std::make_unique<std::vector<float>>();
-  auto       CTCombinedTimeOutInInOutDiffErr   = std::make_unique<std::vector<float>>();
-
-  auto  CTDTlayer0 = std::make_unique<std::vector<float>>();
-  auto  CTDTlayer1 = std::make_unique<std::vector<float>>();
-  auto  CTDTlayer2 = std::make_unique<std::vector<float>>();
-  auto  CTDTlayer3 = std::make_unique<std::vector<float>>();
-  auto  CTDTlayer4 = std::make_unique<std::vector<float>>();
-  auto  CTnrOfMuHits = std::make_unique<std::vector<float>>();
-  auto   CTsectorsOfDT= std::make_unique<std::vector<float>>();
-
-
-  auto  CTMuOrigin  = std::make_unique<std::vector<float>>();
-
-  auto         muonsDTMuontrackDirection = std::make_unique<std::vector<float>>();
-  auto         muonsDTMuontrackSector= std::make_unique<std::vector<float>>();
-
-  auto         muonsDTMuontrackInOut= std::make_unique<std::vector<float>>();
-  auto         muonsDTMuontrackOutIn= std::make_unique<std::vector<float>>();
 
   auto       PU      = std::make_unique<std::vector<float>>();
   auto bx            = std::make_unique<std::vector<unsigned int>>();
   auto nroftracks            = std::make_unique<unsigned int>();
-  auto nrofmuons            = std::make_unique<unsigned int>();
   auto nrofevents            = std::make_unique<unsigned int>();
-
-  auto muonsDTMuontrackInOutTop = std::make_unique<std::vector<float>>(); 
-    auto               muonsDTMuontrackOutInTop = std::make_unique<std::vector<float>>() ;
-    auto               muonsDTMuontrackInOutErrTop = std::make_unique<std::vector<float>>(); 
-    auto               muonsDTMuontrackOutInErrTop = std::make_unique<std::vector<float>>() ;
-    auto               innerXtop =  std::make_unique<std::vector<float>>();
-  auto                 innerYtop =  std::make_unique<std::vector<float>>();
-  auto                 innerZtop =  std::make_unique<std::vector<float>>();
-  auto                 innerVZtop =  std::make_unique<std::vector<float>>();
-  auto                 innerVX =  std::make_unique<std::vector<float>>();
-  auto                 innerVY =  std::make_unique<std::vector<float>>();
-  auto                 Etatop =  std::make_unique<std::vector<float>>();
-  auto                 outerXtop =  std::make_unique<std::vector<float>>();
-  auto                 outerYtop =  std::make_unique<std::vector<float>>();
-  auto                 outerZtop =  std::make_unique<std::vector<float>>();
-  auto                 outerEtatop =  std::make_unique<std::vector<float>>();
-  auto                  muonsDTMuontrackLastWheel=  std::make_unique<std::vector<float>>();
-
-    auto               CTinnerXtop =  std::make_unique<std::vector<float>>();
-  auto                 CTinnerYtop =  std::make_unique<std::vector<float>>();
-  auto                 CTinnerZtop =  std::make_unique<std::vector<float>>();
-  auto                 CTinnerVZtop =  std::make_unique<std::vector<float>>();
-  auto                 CTinnerVY =  std::make_unique<std::vector<float>>();
-  auto                 CTinnerVX =  std::make_unique<std::vector<float>>();
-  auto                 CTEtatop =  std::make_unique<std::vector<float>>();
-  auto                 CTtof =  std::make_unique<std::vector<float>>();
-  auto                 CTtofImproved =  std::make_unique<std::vector<float>>();
-  auto                 CTouterXtop =  std::make_unique<std::vector<float>>();
-  auto                 CTouterYtop =  std::make_unique<std::vector<float>>();
-  auto                 CTouterZtop =  std::make_unique<std::vector<float>>();
-  auto                 CTouterEtatop =  std::make_unique<std::vector<float>>();
-  auto                 CTmuonsDTMuontrackLastWheel=  std::make_unique<std::vector<float>>();
-
-
-
-  auto                 tzeroMinTimeInOut=  std::make_unique<std::vector<float>>();
-  auto                 tzeroMinTimeOutIn=  std::make_unique<std::vector<float>>();
-
-  auto                 muOrigin =  std::make_unique<std::vector<float>>();
-
 /*  auto passHLTL1SingleMu3v1 = std::make_unique<bool>(); 
   auto passHLTL1SingleMu5v1 =  std::make_unique<bool>(); 
   auto passHLTL1SingleMu7v1 =   std::make_unique<bool>();
@@ -560,15 +314,11 @@ produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   edm::ESHandle<TrackerGeometry> theTrackerGeometry;         iSetup.get<TrackerDigiGeometryRecord>().get( theTrackerGeometry );  
   edm::ESHandle<MagneticField> magfield;		     iSetup.get<IdealMagneticFieldRecord>().get(magfield);
   edm::ESHandle<SiStripLorentzAngle> SiStripLorentzAngle;    iSetup.get<SiStripLorentzAngleDepRcd>().get(SiStripLorentzAngle);
-  //edm::ESHandle<DTGeometry> theDTGeometry;                   iSetup.get<MuonGeometryRecord>().get( theDTGeometry );  
 
   edm::Handle<TrajTrackAssociationCollection> associations;  iEvent.getByToken(association_token_, associations);
 
     edm::Handle<edm::DetSetVector<SiStripProcessedRawDigi> > rawProcessedDigis;
     iEvent.getByToken(theDigisToken_,rawProcessedDigis);
-
-   edm::Handle< edm::DetSetVector<SiStripRawDigi> > moduleRawDigi;
-   iEvent.getByToken(theRawDigisToken_,moduleRawDigi);
 
 
   edm::Handle<std::vector<reco::Vertex> > vtx;
@@ -577,22 +327,6 @@ produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   edm::ESHandle<TrackerTopology> tTopoHandle;
   iSetup.get<TrackerTopologyRcd>().get(tTopoHandle);
   const TrackerTopology* const tTopo = tTopoHandle.product();
-
-  edm::Handle<edm::DetSetVector<SiStripProcessedRawDigi> > moduleCM;
-  iEvent.getByToken(theCMNToken_,moduleCM);
-
-  edm::Handle< edm::DetSetVector<SiStripDigi> > moduleZSdigi;
-  iEvent.getByToken(srcZSdigi_,moduleZSdigi);
-
-  iEvent.getByToken(MuonTokens_,MuCollection);
-
- 
-  iEvent.getByToken(CombinedTimeTokens_,timeMap1);
-  const reco::MuonTimeExtraMap & timeMapCmb = *timeMap1;
-  iEvent.getByToken(DtTimeTokens_,timeMap2);
-  const reco::MuonTimeExtraMap & timeMapDT = *timeMap2;
-  iEvent.getByToken(CscTimeTokens_,timeMap3);
-  const reco::MuonTimeExtraMap & timeMapCSC = *timeMap3;
 
 
 /*  const edm::TriggerNames& trigNames = iEvent.triggerNames(*trigResults);
@@ -603,38 +337,26 @@ produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   *passHLTL1SingleMuOpenDTv2 =trigResults->accept(trigNames.triggerIndex("HLT_L1SingleMuOpen_DT_v2"));  
   *passHLTL1SingleMuOpenv2 =trigResults->accept(trigNames.triggerIndex("HLT_L1SingleMuOpen_v2"));  
 */
-
-  cout << "correct file" << endl;
   TrajectoryStateCombiner combiner;
 
 	size_t ontrk_cluster_idx=0;
   std::map<size_t, std::vector<size_t> > mapping; //cluster idx --> on trk cluster idx (multiple)
 
-      //ITERATING thorough value map
-      /*for( reco::MuonTimeExtraMap::const_iterator timeIt = timeMapCmb.begin(); timeIt!= timeMapCmb.end(); timeIt++)
-      {
-          reco::MuonTimeExtraMap::container::const_iterator timeIt2 = timeIt.begin();
-          for(;timeIt2!= timeIt.end(); timeIt2++)
-          {
-          float ftex = timeIt2->direction(); 
-          float ttex = timeIt2->timeAtIpOutIn(); 
-          cout << "values in the map" << ftex << "time " << ttex << std::endl;
-          }
-      }*/
 
-
+  //myfile2.open(filename);
   float PU_=0;
   PU_=vtx->size();
-
+  //PU_=5; //@MJ@ TODO completely fake
+  //if(PU_>lowBound && PU_<highBound)
+  //{
   *nrofevents = 1;
-  PU->push_back(PU_);
-  bx->push_back(iEvent.bunchCrossing());
+      PU->push_back(PU_);
+      bx->push_back(iEvent.bunchCrossing());
+ // }
+  //myfile2 << "n events " << ev << std::endl;
+
 
   *nroftracks = 0;
-  *nrofmuons = 0;
-
-
-//track loop
   for( TrajTrackAssociationCollection::const_iterator association = associations->begin(); 
        association != associations->end(); association++) {
     const Trajectory*  traj  = association->key.get();
@@ -642,175 +364,20 @@ produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		int trk_idx = shallow::findTrackIndex(tracks, track); 
 		size_t trk_strt_idx = ontrk_cluster_idx;
 
- 
-
-cout << "before good track " << endl;
-
     bool isGoodTrack = trackFilter(track);
     if(!isGoodTrack)
         continue;
+   
 
 
-  uint32_t trackerTrack = 0;
-  bool muFound = false;
-  for (uint32_t mmu=0; mmu<MuCollection->size(); mmu++)
-  {  
-      if(MuCollection->at(mmu).isTrackerMuon())
-      {
-          // (*nrofmuons)++;
-          //cout << "global muon" << MuCollection->at(mu).isGlobalMuon() << endl;
-          muFound = true;
-          trackerTrack = mmu;
-          break;
-      }
-  }
-      
-      if(!muFound) //no tacker muon
-          continue;
-
-      reco::MuonRef muonR(MuCollection, trackerTrack); //@MJ@ TODO - for now first track but I must deal with that!!
-      reco::MuonTimeExtra timec = timeMapCmb[muonR];
-      reco::MuonTimeExtra timedt = timeMapDT[muonR];
-      reco::MuonTimeExtra timecsc = timeMapCSC[muonR];
-
-
-     //just a test
-     //const reco::Track* bestMu = muonR->bestTrack();
-     //reco::TrackRef  bestMu = muonR->globalTrack();
-
-     reco::TrackRef  bestMu = muonR->innerTrack();
-     //cout << "inner global detid " << bestMu->innerDetId() << " inner local det id " << track->innerDetId() << endl;
-     //cout << "outer global detid " << bestMu->outerDetId() << " outer local det id " << track->outerDetId() << endl;
-     if( !(bestMu->innerDetId() == track->innerDetId()) )
-         continue;
-     if( !(bestMu->outerDetId() == track->outerDetId()) )
-         continue;
-
-     //muon hits
-     //reco::TrackRef muTrack = muonR->standAloneMuon();
-     bool topTrack = false;
-     bool bottomTrack = false;
-     bool topMu = false;
-     bool bottomMu = false;
-     bool bothMu = false;
-     bool DTlayer0 = false;
-     bool DTlayer1 = false;
-     bool DTlayer2 = false;
-     bool DTlayer3 = false;
-     bool DTlayer4 = false;
-     uint32_t nrOfMuHits = 0;
-     std::vector<uint32_t> sectorsOfDT;
-
-     reco::TrackRef muTrack = muonR->globalTrack();
-     reco::TrackRef muTrackSA = muonR->standAloneMuon();
-     if(!muTrack.isNull())
-     {
-
-         trackingRecHit_iterator  muHit= muTrack->recHitsBegin();
-         DTChamberId lastDTchamber;
-         
-         for(  ; muHit !=  muTrack->recHitsEnd(); muHit++)
-         {
-             //save size of the hits
-             //booleans for layer 1,2,3,4
-             //booleans for layer 0 -full SL
-             if( static_cast<int>((*muHit)->geographicalId().det()) ==2  && static_cast<int>((*muHit)->geographicalId().subdetId()) == static_cast<int>(MuonSubdetId::DT))
-             {
-                 DTChamberId DTchamber((*muHit)->geographicalId());
-                 lastDTchamber =DTchamber;
-                 DTLayerId DTLayer((*muHit)->geographicalId());
-                 muonsDTMuontrackDirection->push_back(static_cast<int>(timeMapDT[muonR].direction()));
-                 muonsDTMuontrackInOut->push_back(timeMapDT[muonR].timeAtIpInOut());
-                 muonsDTMuontrackOutIn->push_back(timeMapDT[muonR].timeAtIpOutIn());
-                 muonsDTMuontrackSector->push_back( DTchamber.sector() );
-                 nrOfMuHits++; //it is probably not completely correct
-                 if(std::find(sectorsOfDT.begin(), sectorsOfDT.end(), DTchamber.sector()) == sectorsOfDT.end())
-                     sectorsOfDT.push_back(DTchamber.sector());
-                 //if( !( (DTchamber.sector()>1 && DTchamber.sector()<7) || (DTchamber.sector() == 13) ) )
-                 if(  (DTchamber.sector()>6 && DTchamber.sector()<13) || (DTchamber.sector() == 14)  )
-                     bottomTrack = true;
-                 if( (DTchamber.sector()>0 && DTchamber.sector()<7) || (DTchamber.sector() == 13)  )
-                     topTrack = true;
-
-                 
-
-                 if(DTLayer.layer() == 0)
-                     DTlayer0=true;
-                 if(DTLayer.layer() == 1)
-                     DTlayer1=true;
-                 if(DTLayer.layer() == 2)
-                     DTlayer2=true;
-                 if(DTLayer.layer() == 3)
-                     DTlayer3=true;
-                 if(DTLayer.layer() == 4)
-                     DTlayer4=true;
-             }
-         }
-
-
-                 if( topTrack == true && bottomTrack == false)
-                 {
-                     muOrigin->push_back(1);
-                     topMu = true;
-                 }
-                 else if( topTrack == false && bottomTrack == true)
-                 {
-                     muOrigin->push_back(2);
-                     bottomMu = true;
-                 }
-                 else if( topTrack == true && bottomTrack == true)
-                 {
-                     muOrigin->push_back(3);
-                     bothMu = true;
-                 }
-
-             //if(topTrack)
-             if(true)
-             {
-              cout << "nr of hits standalone " << muTrackSA->recHitsSize() << " nr of time measurements in DT " << timeMapDT[muonR].timeAtIpInOutHIT().size() << " nr of time measurements combined " << timeMapCmb[muonR].timeAtIpInOutHIT().size() << endl;
-              cout << "nr of hits combined " << muonR->combinedMuon()->recHitsSize() << " nr of time measurements in DT " << timeMapDT[muonR].timeAtIpInOutHIT().size() << " nr of time measurements combined " << timeMapCmb[muonR].timeAtIpInOutHIT().size() << endl;
-              cout << "nr of hits global  " << muTrack->recHitsSize() << " nr of time measurements in DT " << timeMapDT[muonR].timeAtIpInOutHIT().size() << " nr of time measurements combined " << timeMapCmb[muonR].timeAtIpInOutHIT().size() << endl;
-             if(muTrackSA->recHitsSize() != timeMapDT[muonR].timeAtIpInOutHIT().size())
-                 cout << "hit and time sizes not the same!! " << endl;
-
-                 muonsDTMuontrackInOutTop->push_back(timeMapDT[muonR].timeAtIpInOut()); 
-                 muonsDTMuontrackOutInTop->push_back(timeMapDT[muonR].timeAtIpOutIn()) ;
-                 muonsDTMuontrackInOutErrTop->push_back(timeMapDT[muonR].timeAtIpInOutErr()); 
-                 muonsDTMuontrackOutInErrTop->push_back(timeMapDT[muonR].timeAtIpOutInErr()) ;
-                 innerXtop->push_back( muTrack->innerPosition().x());
-                 innerYtop->push_back( muTrack->innerPosition().y());
-                 innerZtop->push_back( muTrack->innerPosition().z());
-                 outerXtop->push_back( muTrack->outerPosition().x());
-                 outerYtop->push_back( muTrack->outerPosition().y());
-                 outerZtop->push_back( muTrack->outerPosition().z());
-                 outerEtatop->push_back( muTrack->outerEta());
-                 muonsDTMuontrackLastWheel->push_back( lastDTchamber.wheel() );
-                 innerVZtop->push_back( muTrack->vz());
-                 innerVX->push_back( muTrack->vx());
-                 innerVY->push_back( muTrack->vy());
-                 Etatop->push_back( muTrack->eta());
-                 for(uint32_t tzero = 0; tzero< timeMapDT[muonR].timeAtIpInOutHIT().size(); tzero++)
-                 {
-                     tzeroMinTimeInOut->push_back(timeMapDT[muonR].timeAtIpInOutHIT().at(tzero) - timeMapDT[muonR].timeAtIpInOut() );
-                     tzeroMinTimeOutIn->push_back(timeMapDT[muonR].timeAtIpOutInHIT().at(tzero) - timeMapDT[muonR].timeAtIpOutIn() );
-                 }
-
-             }
-     }
-
-   //if(topTrack == false) //@MJ@ TODO not forget to remove that
-   //      continue;
-
-  
-   if(muTrack.isNull()) //only global muons
-       continue;
-
-cout << " after good track " << endl;
-    
-     int trackDirection = static_cast<int>(timeMapCmb[muonR].direction());
-     int DTtrackDirection = static_cast<int>(timeMapDT[muonR].direction());
-
+ 
+  //if(PU_>lowBound && PU_<highBound)
+  //{
+      //*nroftracks = *nroftracks+1;
       (*nroftracks)++;
+  //}
+  //myfile2 << "n tracks " << ntracks << std::endl;
+  //myfile2.close();
 
     BOOST_FOREACH( const TrajectoryMeasurement measurement, traj->measurements() ) {
       const TrajectoryStateOnSurface tsos = measurement.updatedState();
@@ -835,12 +402,12 @@ cout << " after good track " << endl;
 	
 				unsigned i = cluster->second;
 
-                                uint32_t id = hit->geographicalId();//@MJ@ detID here!!
-				DetId modId(id);
+
+                                uint32_t id = hit->geographicalId();
                                 const moduleVars moduleV(id, tTopo);
-                                //std::cout << "before cluster info "  << std::endl;
+                                std::cout << "before cluster info "  << std::endl;
                                 const SiStripClusterInfo info(*cluster_ptr, iSetup, id);
-                                //std::cout << "after cluster info "  << std::endl;
+                                std::cout << "after cluster info "  << std::endl;
                                 const NearDigis digis = rawProcessedDigis.isValid() ? NearDigis(info, *rawProcessedDigis) : NearDigis(info);
                                 
 
@@ -859,75 +426,6 @@ cout << " after good track " << endl;
 					mapping.insert( std::make_pair(i, single) );
 				}
 
-                                //@MJ@ TODO raw digis code
-                                /*cout << "in here 1" << endl;
-                                edm::DetSetVector<SiStripRawDigi>::const_iterator itRawDigis2 = moduleRawDigi->find(modId);
-                                for (; itRawDigis2 != moduleRawDigi->end(); ++itRawDigis2) 
-                                {
-                                    cout << "available detId: " << itRawDigis2->id << endl;
-                                }*/
-      
-                                //cout << "detsetvector rawdigis size " <<  moduleRawDigi->size() << endl ; 
-                                //h1Cluster_ = new TH1F(("Cluster" + std::to_string(id)).c_str() , ("Cluster" + std::to_string(id)).c_str(), 900, 0, 900); //MJ@ TODO + eventnr@
-                                //h1ClusterDiff_ = new TH1F(("ClusterDiff" + std::to_string(id)).c_str() , ("ClusterDiff" + std::to_string(id)).c_str(), 900, 0, 900); //MJ@ TODO + eventnr@
-                                //h1CTCluster_ = new TH1F(("CTCluster" + std::to_string(id)).c_str() , ("CTCluster" + std::to_string(id)).c_str(), 910, -10, 900); //MJ@ TODO + eventnr@
-                                std::vector<float> vRawDigis;
-                                std::vector<float> vCMN;
-                                edm::DetSetVector<SiStripRawDigi>::const_iterator itRawDigis = moduleRawDigi->find(modId);
-                                edm::DetSetVector<SiStripProcessedRawDigi>::const_iterator itCMNDigis = moduleCM->find(modId);
-                                //edm::DetSetVector<SiStripDigi>::const_iterator itZSdigis = moduleZSdigi->find(modId);
-                                //cout << "in here 2" << endl;
-                                if(itRawDigis != moduleRawDigi->end())
-                                {
-                                //cout << "in here 3" << endl;
-                                    //h1RawDigis_ = new TH1F(("rawdigis" + std::to_string(id)).c_str() , ("rawdigis" + std::to_string(id)).c_str(), 900, 0, 900); //MJ@ TODO + eventnr@
-                                    //h1CMN_ = new TH1F(("CMN" + std::to_string(id)).c_str() , ("CMN" + std::to_string(id)).c_str(), 900, 0, 900); //MJ@ TODO + eventnr@
-                                    //h1Processed_ = new TH1F(("Processed" + std::to_string(id)).c_str() , ("Processed" + std::to_string(id)).c_str(), 900, 0, 900); //MJ@ TODO + eventnr@
-                                    //h1ZSdigis_ = new TH1F(("ZS" + std::to_string(id)).c_str() , ("ZS" + std::to_string(id)).c_str(), 900, 0, 900); //MJ@ TODO + eventnr@
-                                    edm::DetSet<SiStripRawDigi>::const_iterator itRaw = itRawDigis->begin();
-                                    edm::DetSet<SiStripProcessedRawDigi>::const_iterator itCMN = itCMNDigis->begin();
-                                    uint32_t rawstrip=0;
-                                //cout << "in here 4" << endl;
-                                    for(;itRaw != itRawDigis->end(); ++itRaw, ++rawstrip)
-                                    {
-                                //cout << "in here 5" << endl;
-                                        //h1RawDigis_->Fill(rawstrip,itRaw->adc());
-                                        vRawDigis.push_back(itRaw->adc());
-                                        if(rawstrip!=0 && rawstrip%128==0)
-                                            itCMN++;
-                                        if(itCMN != itCMNDigis->end())
-                                        { 
-                                            //h1CMN_->Fill(rawstrip,itCMN->adc());
-                                            vCMN.push_back(itCMN->adc());
-                                            //h1Processed_->Fill(rawstrip,itRaw->adc()-itCMN->adc());
-                                        }
-                                    }
-                                        //for( edm::DetSet<SiStripDigi>::const_iterator ZSdigis = itZSdigis->begin(); ZSdigis != itZSdigis->end(); ++ZSdigis) {
-                                        //     //h1ZSdigis_->SetBinContent(ZSdigis->strip()+1, ZSdigis->adc());
-                                        //     continue;
-                                        //}
-
-                                    /*h1RawDigis_->SetXTitle("strip#");
-                                    h1RawDigis_->SetYTitle("ADC");
-                                    h1RawDigis_->SetMaximum(1024.);
-                                    h1RawDigis_->SetMinimum(-300.);
-                                    h1RawDigis_->SetLineWidth(2);
-                                    h1RawDigis_->Write();
-                                    h1CMN_->SetXTitle("strip#");
-                                    h1CMN_->SetYTitle("ADC");
-                                    h1CMN_->SetMaximum(1024.);
-                                    h1CMN_->SetMinimum(-300.);
-                                    h1CMN_->SetLineWidth(2);
-                                    h1CMN_->Write();
-                                    h1Processed_->Write();
-                                    h1ZSdigis_->Write();*/
-                                }
-                                else
-                                {
-                                    cout << "no digis found for given module!!!" << endl;
-                                }
-
-                                //cout << "in here done" << endl;
 				const StripGeomDetUnit* theStripDet = dynamic_cast<const StripGeomDetUnit*>( theTrackerGeometry->idToDet( hit->geographicalId() ) );
 				LocalVector drift = shallow::drift( theStripDet, *magfield, *SiStripLorentzAngle);
 				
@@ -938,7 +436,7 @@ cout << " after good track " << endl;
       (number->at(0))++;
       (number->at(moduleV.subdetid))++;
                      
-                      float langle = (SiStripLorentzAngle.isValid()) ? SiStripLorentzAngle->getLorentzAngle(id) : 0.;
+                      float langle = (SiStripLorentzAngle.isValid()) ? SiStripLorentzAngle->getLorentzAngle(id) : 0.;;
                       lorentzAngle->push_back(langle);
                       width->push_back(        cluster_ptr->amplitudes().size()                              );
 		      barystrip->push_back(    cluster_ptr->barycenter()                                     );
@@ -984,7 +482,6 @@ cout << " after good track " << endl;
 
 
       uint32_t strips=0;
-      std::map<float,int> chargeStrip;
       for( auto itAmpl = cluster_ptr->amplitudes().begin(); itAmpl != cluster_ptr->amplitudes().end(); ++itAmpl){
           stripCharge->push_back(*itAmpl);//@MJ@ 
           stripChargeTotCharge->push_back(info.charge());
@@ -1003,178 +500,8 @@ cout << " after good track " << endl;
           stripChargelocalpitch->push_back(  (theStripDet->specificTopology()).localPitch(theStripDet->toLocal(tsos.globalPosition())) ); 
           stripChargesensorThickness->push_back(             theStripDet->specificSurface().bounds().thickness() );
 	  stripChargeBdotY->push_back(       (theStripDet->surface()).toLocal( magfield->inTesla(theStripDet->surface().position())).y() );
-          //h1Cluster_->Fill(info.firstStrip()+strips,*itAmpl);
-          //float adcVal = h1Processed_->GetBinContent(info.firstStrip()+strips+2);
-          //h1ClusterDiff_->Fill(info.firstStrip()+strips,adcVal-(*itAmpl));
-
-          chargeStrip.insert(make_pair(*itAmpl,info.firstStrip() +strips)) ;
-
           ++strips; 
       }
-      //h1Cluster_->Write();
-      //h1ClusterDiff_->Write();
-
-      int baryStrip = chargeStrip.rbegin()->second;
-      cout << "barystrip  position" << baryStrip << "value " << chargeStrip.rbegin()->first << endl;
-
-      for(int32_t x=-2; x<3; x++)
-      {
-          if(isData)
-          {
-		  if( baryStrip+x < 0 || (int)baryStrip+x > (int) (vRawDigis.size()-1) )
-		  {
-		      CTstripCharge->push_back(-333);
-		      //h1CTCluster_->Fill(baryStrip+x, -333 );
-		  }
-		  else
-		  {
-		      CTstripCharge->push_back(vRawDigis.at(baryStrip+x) - vCMN.at(baryStrip+x));
-		      //h1CTCluster_->Fill(baryStrip+x, vRawDigis.at(baryStrip+x) - vCMN.at(baryStrip+x) );
-		      cout << "strip nr  " << baryStrip+x << " value " << vRawDigis.at(baryStrip+x) - vCMN.at(baryStrip+x) << endl;
-		  }
-           }
-           else
-           {
-		   bool stripFound = false;
-		   for(std::map<float,int>::iterator it=chargeStrip.begin(); it!=chargeStrip.end(); it++)
-		   {
-		       if(it->second == baryStrip+x)
-		       {
-			   CTstripCharge->push_back(it->first);
-			   stripFound = true;                  
-		           cout << " ZS strip nr  " << baryStrip+x << " value " << it->first  << endl;
-		       }
-		   }
-		   if(!stripFound)
-                   {
-		       CTstripCharge->push_back(-333);
-                       
-		       cout << " ZS strip nr  " << baryStrip+x << " value " << -333  << endl;
-                   }
-           }
-     
-              CTstripChargeLocalTrackPhi->push_back(  (theStripDet->toLocal(tsos.globalDirection())).phi());
-              CTstripChargeLocalTrackTheta->push_back(  (theStripDet->toLocal(tsos.globalDirection())).theta());
-              CTstripChargeSubdetid->push_back(moduleV.subdetid);
-              CTstripChargeLayerwheel->push_back(moduleV.layerwheel);
-              CTstripChargelocalpitch->push_back(  (theStripDet->specificTopology()).localPitch(theStripDet->toLocal(tsos.globalPosition())) ); 
-              CTstripChargesensorThickness->push_back(             theStripDet->specificSurface().bounds().thickness() );
-              CTstripChargeTotCharge->push_back(info.charge());
-              CTstripChargeTotWidth->push_back(cluster_ptr->amplitudes().size());
-
-              CTCmbtimeVtxr->push_back(timec.timeAtIpOutIn());
-              CTCmbtimeVtxrErr->push_back(timec.timeAtIpOutInErr());
-              CTDttimeVtxr->push_back(timedt.timeAtIpOutIn());
-              CTDttimeVtxrErr->push_back(timedt.timeAtIpOutInErr());
-              //CTCsctimeVtxr->push_back(timecsc.timeAtIpOutIn());
-              //CTCsctimeVtxrErr->push_back(timecsc.timeAtIpOutInErr());
-              CTCsctimeVtxr->push_back(timecsc.timeAtIpOutIn() );
-              CTCsctimeVtxrErr->push_back(timecsc.timeAtIpOutInErr()  );
-
-              CTCmbtimeVtx->push_back(timec.timeAtIpInOut());
-              CTCmbtimeVtxErr->push_back(timec.timeAtIpInOutErr());
-              CTDttimeVtx->push_back(timedt.timeAtIpInOut());
-              CTDttimeVtxErr->push_back(timedt.timeAtIpInOutErr());
-              CTCsctimeVtx->push_back(timecsc.timeAtIpInOut() );
-              CTCsctimeVtxErr->push_back(timecsc.timeAtIpInOutErr() );
-
-              CTCombinedTimeOutInInOutDiff->push_back(timec.timeAtIpOutIn() - timec.timeAtIpInOut() );
-              CTCombinedTimeOutInInOutDiffErr->push_back(timec.timeAtIpOutInErr() - timec.timeAtIpInOutErr() );
-
-              CTMuontrackDirection->push_back(trackDirection);
-              CTDTMuontrackDirection->push_back(DTtrackDirection);
-
-              CTDTlayer0->push_back(DTlayer0);
-              CTDTlayer1->push_back(DTlayer1);
-              CTDTlayer2->push_back(DTlayer2);
-              CTDTlayer3->push_back(DTlayer3);
-              CTDTlayer4->push_back(DTlayer4);
-              CTnrOfMuHits->push_back(nrOfMuHits);
-              CTsectorsOfDT->push_back(sectorsOfDT.size());
-
-              CTMuonCombinedInverseBeta->push_back(timec.inverseBeta());
-              CTMuonCombinedFreeInverseBeta->push_back(timec.freeInverseBeta());
-              CTDTFreeInverseBeta->push_back(timedt.freeInverseBeta());
-              //CTMuontrackPhi->push_back((*glbTrack).phi());
-
-              if(topMu == true)
-                  CTMuOrigin->push_back(1);
-              else if(bottomMu == true)
-                  CTMuOrigin->push_back(2);
-              else if(bothMu == true)
-                  CTMuOrigin->push_back(3);
-              else
-                  CTMuOrigin->push_back(4);
-
-              float rescaledCharge =    info.charge()/ (theStripDet->specificSurface().bounds().thickness() / TMath::Abs(TMath::Cos(theStripDet->toLocal(tsos.globalDirection()).theta())) );
-              CTstripChargeTotChargeRescaled->push_back( rescaledCharge);
-              
-
-              if(outerXtop->size() != 0)
-              {
-                 CTouterXtop->push_back(outerXtop->at(0));
-                 CTouterYtop->push_back( outerYtop->at(0));
-                 CTouterZtop->push_back( outerZtop->at(0));
-                 CTouterEtatop->push_back(outerEtatop->at(0) );
-                 CTmuonsDTMuontrackLastWheel->push_back( muonsDTMuontrackLastWheel->at(0) );
-              }
-              CTinnerXtop->push_back( track->innerPosition().x());
-              CTinnerYtop->push_back( track->innerPosition().y());
-              CTinnerZtop->push_back( track->innerPosition().z());
-              CTinnerVZtop->push_back( track->vz());
-              CTinnerVX->push_back( track->vx());
-              CTinnerVY->push_back( track->vy());
-              CTEtatop->push_back( track->eta());
-
-              float xterm =  TMath::Power(tsos.globalPosition().x() - track->vx(), 2);
-              float yterm =  TMath::Power(tsos.globalPosition().y() - track->vy(), 2);
-              float zterm =  TMath::Power(tsos.globalPosition().z() - track->vz(), 2);
-              float distance = TMath::Sqrt(xterm + yterm+ zterm  )/ 100.0;
-              float timeInSecImproved =  distance/(299792458.0);
-              float timeInNsImproved = timeInSecImproved*TMath::Power(10,9);
-              
-
-              float radius = TMath::Sqrt( TMath::Power(tsos.globalPosition().x(), 2 ) + TMath::Power(tsos.globalPosition().y(), 2) ) / 100.0;
-              float timeInSec =  radius/(299792458.0);
-              float timeInNs = timeInSec*TMath::Power(10,9);
- 
-              //std::cout << " radius " << radius << " time in s " << timeInSec << "time in ns " << timeInNs  << " x-pos " << tsos.globalPosition().x() << " y-pos " << tsos.globalPosition().y() <<  endl;
-              CTtof->push_back(timeInNs);
-              CTtofImproved->push_back(timeInNsImproved);
-
-		if(theStripDet->toGlobal(hit->localPosition()).phi() > 0)
-		{
-		    CTCombinedTimeTop->push_back(timec.timeAtIpOutIn());
-		}
-		else
-		{
-		    CTCombinedTimeBottom->push_back(timec.timeAtIpOutIn());
-		}
-
-		if( trackDirection == 1)
-		{
-		    CTCombinedTimeForInOut->push_back(timec.timeAtIpInOut());
-		}
-		else if( trackDirection == -1 )
-		{
-		    CTCombinedTimeForOutIn->push_back(timec.timeAtIpOutIn());
-		}
-		else
-		{
-
-		}
-
-      } 
-      //h1CTCluster_->Write();
-
-
-
-      chargeStrip.clear();
-      vCMN.clear();
-      vRawDigis.clear();
-
-      //timing
-
 
 
 				trackmulti->push_back(  nassociations );
@@ -1236,9 +563,6 @@ cout << " after good track " << endl;
 
   } //for(TrajTrackAssociationCollection::const_iterator association = associations->begin();
 
-
-   //beforePut:
-
   iEvent.put(std::move(clusterIdx        ), Suffix + "clusterIdx"  );
   iEvent.put(std::move(onTrkClusterIdx   ), Suffix + "onTrkClusterIdx"  );
   iEvent.put(std::move(onTrkClustersBegin), Suffix + "onTrkClustersBegin"  );
@@ -1277,8 +601,8 @@ cout << " after good track " << endl;
   iEvent.put(std::move(rhglobalx),   Suffix + "rhglobalx"    );   
   iEvent.put(std::move(rhglobaly),   Suffix + "rhglobaly"    );   
   iEvent.put(std::move(rhglobalz),   Suffix + "rhglobalz"    );   
-  iEvent.put(std::move(rhglobalphi),   Suffix + "rhglobalphi"    );   
   iEvent.put(std::move(rhglobaltheta),   Suffix + "rhglobaltheta"    );   
+  iEvent.put(std::move(rhglobalphi),   Suffix + "rhglobalphi"    );   
   iEvent.put(std::move(rhstrip),     Suffix + "rhstrip"      );   
   iEvent.put(std::move(rhmerr),      Suffix + "rhmerr"       );   
   iEvent.put(std::move(ubstrip),     Suffix + "ubstrip"      );   
@@ -1346,104 +670,10 @@ cout << " after good track " << endl;
   iEvent.put(std::move(stripChargelocalpitch),   Prefix + "stripChargelocalpitch"    );
   iEvent.put(std::move(stripChargesensorThickness),   Prefix + "stripChargesensorThickness"    );
   iEvent.put(std::move(stripChargeBdotY),   Prefix + "stripChargeBdotY"    );
-  iEvent.put(std::move(CTstripCharge),       "CTstripCharge"        );
-  iEvent.put(std::move(CTstripChargeLocalTrackPhi),       "CTstripChargeLocalTrackPhi"        );
-  iEvent.put(std::move(CTstripChargeLocalTrackTheta),       "CTstripChargeLocalTrackTheta"        );
-  iEvent.put(std::move(CTstripChargeSubdetid),       "CTstripChargeSubdetid"        );
-  iEvent.put(std::move(CTstripChargeLayerwheel),       "CTstripChargeLayerwheel"        );
-  iEvent.put(std::move(CTstripChargelocalpitch),       "CTstripChargelocalpitch"        );
-  iEvent.put(std::move(CTstripChargesensorThickness),       "CTstripChargesensorThickness"        );
-  iEvent.put(std::move(CTstripChargeTotCharge),       "CTstripChargeTotCharge"        );
-  iEvent.put(std::move(CTstripChargeTotChargeRescaled),       "CTstripChargeTotChargeRescaled"        );
-  iEvent.put(std::move(CTstripChargeTotWidth),       "CTstripChargeTotWidth"        );
   iEvent.put(std::move(PU),       "PU"        );
   iEvent.put(std::move(bx),       "bx"        );
   iEvent.put(std::move(nroftracks),       "nroftracks"        );
-  iEvent.put(std::move(nrofmuons),       "nrofmuons"        );
   iEvent.put(std::move(nrofevents),       "nrofevents"        );
-  iEvent.put(std::move(CTCmbtimeVtxr),       "CTCmbtimeVtxr"        );
-  iEvent.put(std::move(CTCmbtimeVtxrErr),       "CTCmbtimeVtxrErr"        );
-  iEvent.put(std::move(CTCombinedTimeOutInInOutDiff),       "CTCombinedTimeOutInInOutDiff"        );
-  iEvent.put(std::move(CTCombinedTimeOutInInOutDiffErr),       "CTCombinedTimeOutInInOutDiffErr"        );
-  iEvent.put(std::move(CTDttimeVtxr),       "CTDttimeVtxr"        );
-  iEvent.put(std::move(CTDttimeVtxrErr),       "CTDttimeVtxrErr"        );
-  iEvent.put(std::move(CTCsctimeVtxr),       "CTCsctimeVtxr"        );
-  iEvent.put(std::move(CTCsctimeVtxrErr),       "CTCsctimeVtxrErr"        );
-
-  iEvent.put(std::move(CTCmbtimeVtx),       "CTCmbtimeVtx"        );
-  iEvent.put(std::move(CTCmbtimeVtxErr),       "CTCmbtimeVtxErr"        );
-  iEvent.put(std::move(CTDttimeVtx),       "CTDttimeVtx"        );
-  iEvent.put(std::move(CTDttimeVtxErr),       "CTDttimeVtxErr"        );
-  iEvent.put(std::move(CTCsctimeVtx),       "CTCsctimeVtx"        );
-  iEvent.put(std::move(CTCsctimeVtxErr),       "CTCsctimeVtxErr"        );
-
-  iEvent.put(std::move(CTCombinedTimeTop),       "CTCombinedTimeTop"        );
-  iEvent.put(std::move(CTCombinedTimeBottom),       "CTCombinedTimeBottom"        );
-  iEvent.put(std::move(CTMuontrackDirection),       "CTMuontrackDirection"        );
-  iEvent.put(std::move(CTDTMuontrackDirection),       "CTDTMuontrackDirection"        );
-  iEvent.put(std::move(CTMuonCombinedInverseBeta),       "CTMuonCombinedInverseBeta"        );
-  iEvent.put(std::move(CTMuonCombinedFreeInverseBeta),       "CTMuonCombinedFreeInverseBeta"        );
-  iEvent.put(std::move(CTDTFreeInverseBeta),       "CTDTFreeInverseBeta"        );
-  //iEvent.put(std::move(CTMuontrackPhi),       "CTMuontrackPhi"        );
-  iEvent.put(std::move(CTCombinedTimeForInOut),       "CTCombinedTimeForInOut"        );
-  iEvent.put(std::move(CTCombinedTimeForOutIn),       "CTCombinedTimeForOutIn"        );
-
-  iEvent.put(std::move(CTDTlayer0),       "CTDTlayer0"        );
-  iEvent.put(std::move(CTDTlayer1),       "CTDTlayer1"        );
-  iEvent.put(std::move(CTDTlayer2),       "CTDTlayer2"        );
-  iEvent.put(std::move(CTDTlayer3),       "CTDTlayer3"        );
-  iEvent.put(std::move(CTDTlayer4),       "CTDTlayer4"        );
-  iEvent.put(std::move(CTnrOfMuHits),       "CTnrOfMuHits"        );
-  iEvent.put(std::move(CTsectorsOfDT),       "CTsectorsOfDT"        );
-
-
-  iEvent.put(std::move(CTMuOrigin),       "CTMuOrigin"        );
-
-  iEvent.put(std::move(muonsDTMuontrackDirection),       "muonsDTMuontrackDirection"        );
-  iEvent.put(std::move(muonsDTMuontrackSector),       "muonsDTMuontrackSector"        );
-
-  iEvent.put(std::move(muonsDTMuontrackInOut),       "muonsDTMuontrackInOut"        );
-  iEvent.put(std::move(muonsDTMuontrackOutIn),       "muonsDTMuontrackOutIn"        );
-
-  iEvent.put(std::move(muonsDTMuontrackInOutTop),       "muonsDTMuontrackInOutTop"        );
-  iEvent.put(std::move(muonsDTMuontrackOutInTop),       "muonsDTMuontrackOutInTop"        );
-  iEvent.put(std::move(muonsDTMuontrackInOutErrTop),       "muonsDTMuontrackInOutErrTop"        );
-  iEvent.put(std::move(muonsDTMuontrackOutInErrTop),       "muonsDTMuontrackOutInErrTop"        );
-  iEvent.put(std::move(innerXtop),       "innerXtop"        );
-  iEvent.put(std::move(innerYtop),       "innerYtop"        );
-  iEvent.put(std::move(innerZtop),       "innerZtop"        );
-  iEvent.put(std::move(innerVZtop),       "innerVZtop"        );
-  iEvent.put(std::move(innerVX),       "innerVX"        );
-  iEvent.put(std::move(innerVY),       "innerVY"        );
-  iEvent.put(std::move(Etatop),       "Etatop"        );
-  iEvent.put(std::move(outerXtop),       "outerXtop"        );
-  iEvent.put(std::move(outerYtop),       "outerYtop"        );
-  iEvent.put(std::move(outerZtop),       "outerZtop"        );
-  iEvent.put(std::move(outerEtatop),       "outerEtatop"        );
-  iEvent.put(std::move(muonsDTMuontrackLastWheel),       "muonsDTMuontrackLastWheel"        );
-
-
-  iEvent.put(std::move(CTouterXtop),       "CTouterXtop"        );
-  iEvent.put(std::move(CTouterYtop),       "CTouterYtop"        );
-  iEvent.put(std::move(CTouterZtop),       "CTouterZtop"        );
-  iEvent.put(std::move(CTouterEtatop),       "CTouterEtatop"        );
-  iEvent.put(std::move(CTmuonsDTMuontrackLastWheel),       "CTmuonsDTMuontrackLastWheel"        );
-  iEvent.put(std::move(CTinnerXtop),       "CTinnerXtop"        );
-  iEvent.put(std::move(CTinnerYtop),       "CTinnerYtop"        );
-  iEvent.put(std::move(CTinnerZtop),       "CTinnerZtop"        );
-  iEvent.put(std::move(CTinnerVZtop),       "CTinnerVZtop"        );
-  iEvent.put(std::move(CTinnerVX),       "CTinnerVX"        );
-  iEvent.put(std::move(CTinnerVY),       "CTinnerVY"        );
-  iEvent.put(std::move(CTEtatop),       "CTEtatop"        );
-  iEvent.put(std::move(CTtof),       "CTtof"        );
-  iEvent.put(std::move(CTtofImproved),       "CTtofImproved"        );
-
-  //just for tests
-  iEvent.put(std::move(tzeroMinTimeInOut),       "tzeroMinTimeInOut"        );
-  iEvent.put(std::move(tzeroMinTimeOutIn),       "tzeroMinTimeOutIn"        );
-
-  iEvent.put(std::move(muOrigin),       "muOrigin"        );
-
   /*iEvent.put(std::move(passHLTL1SingleMu3v1), "passHLTL1SingleMu3v1" ); 
   iEvent.put(std::move(passHLTL1SingleMu5v1), "passHLTL1SingleMu5v1" ); 
   iEvent.put(std::move(passHLTL1SingleMu7v1), "passHLTL1SingleMu7v1" );
@@ -1451,30 +681,20 @@ cout << " after good track " << endl;
   iEvent.put(std::move(passHLTL1SingleMuOpenDTv2), "passHLTL1SingleMuOpenDTv2" );
   iEvent.put(std::move(passHLTL1SingleMuOpenv2), "passHLTL1SingleMuOpenv2" );
 */
-
-    //sdRawDigis_.cd();
-    
-    //delete h1RawDigis_;
-    //h1RawDigis_ = NULL;
 }
 
-bool ShallowTrackClustersProducerCombinedVR::trackFilter(const reco::Track* trk)
+bool ShallowTrackClustersProducerCombined::trackFilter(const reco::Track* trk)
 {
-  //if (trk->pt() < 0.8) return false;
-  //if (trk->p()  < 2.0) return false;
-  //cout << "nr of hits on the track " << trk->hitPattern().numberOfValidTrackerHits() << " chi2 " << trk->normalizedChi2() << " pt " << trk->pt() << " p " << trk->p() << endl;
-  bool result = true;
-  if (trk->hitPattern().numberOfValidTrackerHits()  <= 6) result=false;
-  if (trk->normalizedChi2() > 10.0) result=false;
+  if (trk->pt() < 0.8) return false;
+  if (trk->p()  < 2.0) return false;
+  if (trk->hitPattern().numberOfValidTrackerHits()  <= 6) return false;
+  if (trk->normalizedChi2() > 10.0) return false;
   //check PV compatibility ??
-  if(!result)
-      cout << "false nr of hits on the track " << trk->hitPattern().numberOfValidTrackerHits() << " chi2 " << trk->normalizedChi2() << endl;
-  
-  return result;
+  return true;
 }
 
 
-ShallowTrackClustersProducerCombinedVR::NearDigis::
+ShallowTrackClustersProducerCombined::NearDigis::
 NearDigis(const SiStripClusterInfo& info) {
   max =  info.maxCharge();
   left =           info.maxIndex()    > uint16_t(0)                ? info.stripCharges()[info.maxIndex()-1]      : 0 ;
@@ -1485,7 +705,7 @@ NearDigis(const SiStripClusterInfo& info) {
   last =  info.stripCharges()[info.width()-1];
 }
 
-ShallowTrackClustersProducerCombinedVR::NearDigis::
+ShallowTrackClustersProducerCombined::NearDigis::
 NearDigis(const SiStripClusterInfo& info, const edm::DetSetVector<SiStripProcessedRawDigi>& rawProcessedDigis) {
   edm::DetSetVector<SiStripProcessedRawDigi>::const_iterator digiframe = rawProcessedDigis.find(info.detId());
   if( digiframe != rawProcessedDigis.end()) {
@@ -1501,7 +721,7 @@ NearDigis(const SiStripClusterInfo& info, const edm::DetSetVector<SiStripProcess
   }
 }
 
-ShallowTrackClustersProducerCombinedVR::moduleVars::
+ShallowTrackClustersProducerCombined::moduleVars::
 moduleVars(uint32_t detid, const TrackerTopology* tTopo) {
   SiStripDetId subdet(detid);
   subdetid = subdet.subDetector();
