@@ -1,6 +1,11 @@
-//./crossTalkMeasurementGeneral test_shallowTrackCRUZET_2017tests2.root combinatonOfHits bottom muBottom
+//./crossTalkMeasurementGeneral test_shallowTrackCRUZET_2017tests3.root combinatonOfHits bottom muBottom
 //./crossTalkMeasurementGeneral test_shallowTrackAndClusterMuonFromCollision.root collisionHits bottom muBottom
 //./crossTalkMeasurementGeneral test_shallowTrackAndClusterMuonFromCollision.root collisionHitsRaw bottom muBottom
+//./crossTalkMeasurementGeneral test_shallowTrackCRUZET_2017ZSampltest2.root crossTalkMeasurementZS bottom muBottom
+//./crossTalkMeasurementGeneral test_shallowTrackCRUZET_2017testsVRZS.root crossTalkVRasZS bottom muBottom
+//./crossTalkMeasurementGeneral test_shallowTrackCRUZET_2017ZSCRAFT.root crossTalkCRAFTZS bottom muBottom
+//./crossTalkMeasurementGeneral test_shallowTrackCRUZET_2017testsLatestHopefully2.root combinatonOfHitsTanCut bottom muBottom
+//./crossTalkMeasurementGeneral test_shallowTrackCRUZET_2017lhcSTAMuons.root lhcMu bottom muBottom
 
 
 #include <fstream>
@@ -54,7 +59,8 @@ double eta2( double mean1, double mean2 );
 
 int main(int argc, char *argv[]){
 
- gStyle->SetOptStat(1111111);
+ //gStyle->SetOptStat(1111111);
+ gStyle->SetOptStat(0);
  gROOT->ForceStyle();
  
  TH1::SetDefaultSumw2();
@@ -166,6 +172,9 @@ int main(int argc, char *argv[]){
        vector<float>*  CTouterYtop = 0;
        vector<float>*  CTouterZtop = 0;
        vector<float>*  CTouterEtatop = 0;
+       vector<float>*  CTglobalZ = 0;
+       vector<float>*  CTglobalX = 0;
+       vector<float>*  CTglobalY = 0;
 
        vector<float>  subCTinnerXtop;
        vector<float>  subCTinnerYtop;
@@ -177,6 +186,9 @@ int main(int argc, char *argv[]){
        vector<float>  subCTouterYtop;
        vector<float>  subCTouterZtop;
        vector<float>  subCTouterEtatop;
+       vector<float>  subCTglobalX ;
+       vector<float>  subCTglobalY ;
+       vector<float>  subCTglobalZ ;
 
        float bx;
        vector<float> bxPerStrip;
@@ -226,6 +238,9 @@ int main(int argc, char *argv[]){
        t1->SetBranchAddress("CTMuOrigin",  &CTMuOrigin );
        t1->SetBranchAddress("CTtof",  &CTtof );
        t1->SetBranchAddress("CTtofImproved",  &CTtofImproved );
+       t1->SetBranchAddress("CTglobalX",  &CTglobalX );
+       t1->SetBranchAddress("CTglobalY",  &CTglobalY );
+       t1->SetBranchAddress("CTglobalZ",  &CTglobalZ );
 
    ///adata always first
     
@@ -233,29 +248,29 @@ int main(int argc, char *argv[]){
    uint32_t evCount=0;
    vector<uint32_t> eventCount;
    
-   cout << "in here a" << endl;
+   //cout << "in here a" << endl;
    Int_t nentries = (Int_t)t1->GetEntries();
 
-   cout << "in here b" << endl;
+  // cout << "in here b" << endl;
    ///fill variables from tree 1
    for (Int_t e=0; e<nentries; e++) 
    {
        t1->GetEntry(e);
           
-   cout << "in here b1" << endl;
+   //cout << "in here b1" << endl;
            //per cluster
            //subnroftracks.push_back(nroftracks);
            //subnrofevents.push_back(nrofevents);
            //perstrip
            uint32_t upStrip = CTstripChargeSubdetid->size();
-   cout << "in here b2" << endl;
+   //cout << "in here b2" << endl;
            for(uint32_t k=0; k<upStrip;k++)
            {
                if( true)
                {
                    if(true ) //@MJ@ TODO trigger
                    {
-   cout << "in here b3" << endl;
+   //cout << "in here b3" << endl;
                        subCTstripChargeSubdetid.push_back(CTstripChargeSubdetid->at(k));
                        subCTstripCharge.push_back(CTstripCharge->at(k));
                        subCTstripChargeLayerwheel.push_back(CTstripChargeLayerwheel->at(k));
@@ -293,11 +308,14 @@ int main(int argc, char *argv[]){
                        subCTouterYtop.push_back(CTouterYtop->at(k));
                        subCTouterZtop.push_back(CTouterZtop->at(k));
                        subCTouterEtatop.push_back(CTouterEtatop->at(k));
+                       subCTglobalX.push_back(CTglobalX->at(k));
+                       subCTglobalY.push_back(CTglobalY->at(k));
+                       subCTglobalZ.push_back(CTglobalZ->at(k));
 
                        subCTstripChargeTotChargeRescaled.push_back(CTstripChargeTotChargeRescaled->at(k));
                        subCTtof.push_back(CTtof->at(k));
                        subCTtofImproved.push_back(CTtofImproved->at(k));
-                       cout << "in here workaround 1" << endl;
+                       //cout << "in here workaround 1" << endl;
                        //@MJ@ TODO temporary workaround
                        if( (k+2 > CTMuOrigin->size() ) || (CTMuOrigin->size()==0 && k==0) ) //finish this
                        {
@@ -309,21 +327,21 @@ int main(int argc, char *argv[]){
                            cout << " k " << k << " size " << CTMuOrigin->size()<< endl;
                            subCTMuOrigin.push_back(CTMuOrigin->at(k));
                        }
-                       cout << "in here workaround 2" << endl;
+                       //cout << "in here workaround 2" << endl;
                    }
                }
            }
-   cout << "in here c 1" << endl;
+  // cout << "in here c 1" << endl;
            
            for(uint32_t j=0; j<tsosrhglobalphi->size() ;j++)//@MJ@ TODO just temporaray
            {
-               cout << " size 1 " <<  tsosrhglobalphi->size() << " size 2 " << clusterdetid->size()<< " j " << j << endl;
+               //cout << " size 1 " <<  tsosrhglobalphi->size() << " size 2 " << clusterdetid->size()<< " j " << j << endl;
                subtsosrhglobalphi.push_back(tsosrhglobalphi->at(j));
                subclusterdetid.push_back(clusterdetid->at(j));
            }
    }
 
-   cout << "in here c" << endl;
+ //  cout << "in here c" << endl;
 
 
        //F
@@ -362,6 +380,7 @@ int main(int argc, char *argv[]){
        vector<TProfile*> charge;
        vector<TProfile*> chargePerUnit;
        vector<TH1F*> timing;
+       vector<TH1F*> timingNC;
        vector<TH1F*> beta;
 
 
@@ -381,6 +400,17 @@ int main(int argc, char *argv[]){
 
        vector<TProfile*> timeVsVz;
        vector<TCanvas*> timeVsVzCan;
+
+       vector<TProfile*> betaVsVx;
+       vector<TCanvas*> betaVsVxCan;
+       vector<TProfile*> betaVsVy;
+       vector<TCanvas*> betaVsVyCan;
+       vector<TProfile*> betaVsVz;
+       vector<TCanvas*> betaVsVzCan;
+       vector<TProfile*> betaVsDist;
+       vector<TCanvas*> betaVsDistCan;
+       vector<TProfile*> betaVsTime;
+       vector<TCanvas*> betaVsTimeCan;
 
        vector<TH2F*> vnrOfHitsVsError;
        vector<TH2F*> nrOfSectorsVsError;
@@ -420,6 +450,17 @@ int main(int argc, char *argv[]){
 
        timeVsVz.resize(20, NULL);
        timeVsVzCan.resize(20, NULL);
+
+       betaVsVx.resize(20, NULL);
+       betaVsVxCan.resize(20, NULL);
+       betaVsVy.resize(20, NULL);
+       betaVsVyCan.resize(20, NULL);
+       betaVsVz.resize(20, NULL);
+       betaVsVzCan.resize(20, NULL);
+       betaVsDist.resize(20, NULL);
+       betaVsDistCan.resize(20, NULL);
+       betaVsTime.resize(20, NULL);
+       betaVsTimeCan.resize(20, NULL);
 
        vector<TH1F*> etaOneaAsTime;
        etaOneaAsTime.resize(20, NULL);
@@ -483,6 +524,7 @@ int main(int argc, char *argv[]){
 
 
        timing.resize(20, NULL);
+       timingNC.resize(20, NULL);
        beta.resize(20, NULL);
        timingCan.resize(20, NULL);
        betaCan.resize(20, NULL);
@@ -527,12 +569,16 @@ int main(int argc, char *argv[]){
        TProfile*  timeVsVzLayers =  new TProfile("timeVsVzLayers", "timeVsVzLayers" , 30, -150, 150 ) ;
        TProfile*  timeVsVxLayers =  new TProfile("timeVsVxLayers", "timeVsVyLayers" , 50, -50, 50 ) ;
        TProfile*  timeVsVyLayers =  new TProfile("timeVsVyLayers", "timeVsVyLayers" , 50, -50, 50 ) ;
+       TProfile*  timeVsDistLayers =  new TProfile("timeVsDistLayers", "timeVsDistLayers" , 15, 0, 150 ) ;
        TProfile*  timeVsVzLayersNotZCorr =  new TProfile("timeVsVzLayersNotZCorr", "timeVsVzLayersNotZCorr" , 30, -150, 150 ) ;
+       TProfile*  timeVsDistLayersNotDistCorr =  new TProfile("timeVsDistLayersNotDistCorr", "timeVsDistLayersNotDistCorr" , 15, 0, 150 ) ;
        TCanvas*  chargePerUnitLayersCan =  new TCanvas("chargePerUnitLayers", "chargePerUnitLayers" ) ;
        TCanvas*  timeVsVzLayersCan =  new TCanvas("timeVsVzLayers", "timeVsVzLayers" ) ;
        TCanvas*  timeVsVxLayersCan =  new TCanvas("timeVsVxLayers", "timeVsVxLayers" ) ;
        TCanvas*  timeVsVyLayersCan =  new TCanvas("timeVsVyLayers", "timeVsVyLayers" ) ;
+       TCanvas*  timeVsDistLayersCan =  new TCanvas("timeVsDistLayers", "timeVsDistLayers" ) ;
        TCanvas*  timeVsVzLayersNotZCorrCan =  new TCanvas("timeVsVzLayersNotZCorr", "timeVsVzLayersNotZCorr" ) ;
+       TCanvas*  timeVsDistLayersNotDistCorrCan =  new TCanvas("timeVsDistLayersNotDistCorr", "timeVsDistLayersNotDistCorr" ) ;
 
        TH1F*  localTheta =  new TH1F("localTheta", "localTheta" , 100 , 0, 4 ) ;
        TH1F*  localPhi =  new TH1F("localPhi", "localPhi" , 200 , 4, 4 ) ;
@@ -567,8 +613,8 @@ int main(int argc, char *argv[]){
            uint32_t TOBbottom = 14;
 
    cout << "in here d" << endl;
-           //if( abs(tan(subCTstripChargeLocalTrackTheta.at(clusterStart))) < narrowness*(subCTstripChargelocalpitch.at(clusterStart)/subCTstripChargesensorThickness.at(clusterStart)) )
            //is the cluster narrow?           
+           //if( abs(tan(subCTstripChargeLocalTrackTheta.at(clusterStart))) < narrowness*(subCTstripChargelocalpitch.at(clusterStart)/subCTstripChargesensorThickness.at(clusterStart)) )
            if( abs(tan(subCTstripChargeLocalTrackTheta.at(clusterStart))*cos(subCTstripChargeLocalTrackPhi.at(clusterStart))) < narrowness*(subCTstripChargelocalpitch.at(clusterStart)/subCTstripChargesensorThickness.at(clusterStart)) )
            {
    cout << "in here 1" << endl;
@@ -677,7 +723,8 @@ int main(int argc, char *argv[]){
 		       width.at(partPos) =  new TProfile(("width"+ parName).c_str(), ("width"+ parName).c_str() , 200, -100, 100, 0, 10 ) ;
 
 		       charge.at(partPos)=  new TProfile(("charge"+ parName).c_str(), ("charge"+ parName).c_str() , 200, -100, 100, 0, 1000 ) ;
-		       timing.at(partPos)=  new TH1F(("timing"+ parName).c_str(), ("timing"+ parName).c_str() , 200, -100, 100 ) ;
+		       timing.at(partPos)=  new TH1F(("timing"+ parName).c_str(), ("timing"+ parName).c_str() , 50, -20, 20 ) ;
+		       timingNC.at(partPos)=  new TH1F(("timingNC"+ parName).c_str(), ("timingNC"+ parName).c_str() , 50, -20, 20 ) ;
 		       beta.at(partPos)=  new TH1F(("beta"+ parName).c_str(), ("beta"+ parName).c_str() , 100, -10, 10 ) ;
 		       chargePerUnit.at(partPos)=  new TProfile(("chargePerUnit"+ parName).c_str(), ("chargePerUnit"+ parName).c_str() , 200, -100, 100 ) ;
 
@@ -685,6 +732,11 @@ int main(int argc, char *argv[]){
 		       etaOneaAsTime.at(partPos) =  new TH1F(("etaOneaAsTime"+ parName).c_str(), ("etaOneaAsTime"+ parName).c_str() , 40, -20, 20 ) ;
 
 		       timeVsVz.at(partPos) =  new TProfile(("timeVsVz"+ parName).c_str(), ("timeVsVz"+ parName).c_str() , 25, -150, 150) ;
+		       betaVsVx.at(partPos) =  new TProfile(("betaVsVx"+ parName).c_str(), ("betaVsVx"+ parName).c_str() , 25, -50, 50) ;
+		       betaVsVy.at(partPos) =  new TProfile(("betaVsVy"+ parName).c_str(), ("betaVsVy"+ parName).c_str() , 25, -20, 20) ;
+		       betaVsVz.at(partPos) =  new TProfile(("betaVsVz"+ parName).c_str(), ("betaVsVz"+ parName).c_str() , 25, -150, 150) ;
+		       betaVsDist.at(partPos) =  new TProfile(("betaVsDist"+ parName).c_str(), ("betaVsDist"+ parName).c_str() , 15, 0, 150, -1, 2) ;
+		       betaVsTime.at(partPos) =  new TProfile(("betaVsTime"+ parName).c_str(), ("betaVsTime"+ parName).c_str() , 40, -20, 20, -1, 2) ;
 
    cout << "in here 2.3" << endl;
 		       chargeCenter.at(partPos) =  new TProfile(("chargeCenter"+ parName).c_str(), ("chargeCenter"+ parName).c_str() , 200, -100, 100, 0, 1000 ) ;
@@ -728,6 +780,11 @@ int main(int argc, char *argv[]){
    cout << "in here 2.6" << endl;
 
 		       timeVsVzCan.at(partPos) =   new TCanvas( ("timeVsVzCan"+ parName).c_str(), ("timeVsVzCan"+ parName).c_str()) ;
+		       betaVsVxCan.at(partPos) =   new TCanvas( ("betaVsVxCan"+ parName).c_str(), ("betaVsVxCan"+ parName).c_str()) ;
+		       betaVsVyCan.at(partPos) =   new TCanvas( ("betaVsVyCan"+ parName).c_str(), ("betaVsVyCan"+ parName).c_str()) ;
+		       betaVsVzCan.at(partPos) =   new TCanvas( ("betaVsVzCan"+ parName).c_str(), ("betaVsVzCan"+ parName).c_str()) ;
+		       betaVsDistCan.at(partPos) =   new TCanvas( ("betaVsDistCan"+ parName).c_str(), ("betaVsDistCan"+ parName).c_str()) ;
+		       betaVsTimeCan.at(partPos) =   new TCanvas( ("betaVsTimeCan"+ parName).c_str(), ("betaVsTimeCan"+ parName).c_str()) ;
 
                        timingError.at(partPos) = new TH1F( ("timingError"+ parName).c_str() , ("timingError"+parName).c_str() , 50, 0, 2 );
                        timingErrorCan.at(partPos) = new TCanvas( ("timingError"+ parName).c_str() , ("timingError"+parName).c_str() ) ;
@@ -777,33 +834,52 @@ int main(int argc, char *argv[]){
                    float timeErr = 0;
                    float tofCorr = 0;
                    float zCorr = 0;
+                   float dCorr = 0;
+                   float d2Corr = 0;
 
+                   float distVtx = TMath::Sqrt( TMath::Power( subCTinnerVX.at(clusterStart),2 ) + TMath::Power( subCTinnerVY.at(clusterStart),2 ) + TMath::Power( subCTinnerVZtop.at(clusterStart),2 )  );
+                   float distFromVtx = TMath::Sqrt( TMath::Power( subCTinnerVX.at(clusterStart) -subCTglobalX.at(clusterStart) ,2 ) + TMath::Power( subCTinnerVY.at(clusterStart) - subCTglobalY.at(clusterStart),2 ) + TMath::Power( subCTinnerVZtop.at(clusterStart) - subCTglobalZ.at(clusterStart),2 )  );
+                   float distGlobal = TMath::Sqrt( TMath::Power( subCTglobalX.at(clusterStart),2 ) + TMath::Power( subCTglobalY.at(clusterStart),2 ) + TMath::Power( subCTglobalZ.at(clusterStart),2 )  );
+                   //float distDiffBot = distGlobal - distFromVtx;
+                   double distDiffBotInNs = ((distGlobal - distFromVtx)/29979245800.0) *TMath::Power(10,9) ;
+                   double distDiffTopInNs = (distGlobal/29979245800.0) *TMath::Power(10,9) ;
+                   cout << "distDiffBotInNs  " << distDiffBotInNs << " distDiffTopInNs " << distDiffTopInNs << endl;
+                   //double timeInSecImproved =  distance/299792458.0;
+                   //double timeInNsImproved = timeInSecImproved*TMath::Power(10,9);
                    if(subCTMuOrigin.at(clusterStart) ==1)
                    {
                        time  = subCTCmbtimeVtxr.at(clusterStart); 
                        timeErr  = subCTCmbtimeVtxrErr.at(clusterStart); 
-                       if( hem == 1 )
+                       if( hem == 1 ) //@MJ@ TODO -first z-correction and then TOF correction
                        {
-                           //tofCorr = 2* subCTtof.at(clusterStart) ;
-                           tofCorr = 2* subCTtofImproved.at(clusterStart) ;
-                           time+=tofCorr;
+                           //tofCorr = 2* subCTtofImproved.at(clusterStart) ;
                            timeNotZCorr = time;
-                           //zCorr = (-0.00665253*subCTinnerVZtop.at(clusterStart) )+ ( 0.00036609*TMath::Power(subCTinnerVZtop.at(clusterStart),2)) ;
-                           zCorr = (-0.00566121*subCTinnerVZtop.at(clusterStart) )+ ( 0.00039386*TMath::Power(subCTinnerVZtop.at(clusterStart),2)) ; //improved
-                           time-=zCorr;
-                           //p0                        =      5.03401   +/-   0.0393454   
-                           //p1                        =  -0.00665253   +/-   0.000622806 
-                           //p2                        =   0.00036609   +/-   9.22906e-06 
+                           //zCorr = (-0.00566121*subCTinnerVZtop.at(clusterStart) )+ ( 0.00039386*TMath::Power(subCTinnerVZtop.at(clusterStart),2)) ; //improved
+                           dCorr = 0.0351501*distVtx   ; // dist improved
+                           time-=dCorr;
+                           tofCorr = 2* distDiffTopInNs;
+                           time+=tofCorr;
+                           //
+                           //Chi2                      =      85.9722
+                           //NDf                       =            9
+                           //p0                        =    -0.282677   +/-   0.0418127   
+                           //p1                        =    0.0351501   +/-   0.00099417
                        }
                        else if( hem == -1)
                        {
                            tofCorr = 0 ;
                            timeNotZCorr = time;
-                           zCorr = (-0.00149803*subCTinnerVZtop.at(clusterStart) )+ ( 0.000140307*TMath::Power(subCTinnerVZtop.at(clusterStart),2)) ;
-                           time-=zCorr;
-                           //p0                        =    0.0838322   +/-   0.0228075   
-                           //p1                        =  -0.00149803   +/-   0.000368792 
-                           //p2                        =  0.000140307   +/-   5.45244e-06
+                           //zCorr = (-0.00149803*subCTinnerVZtop.at(clusterStart) )+ ( 0.000140307*TMath::Power(subCTinnerVZtop.at(clusterStart),2)) ;
+                           dCorr = 0.0122072*distVtx   ; // dist improved
+                           //dCorr = 0.0186595*distVtx   ; // only for tan(theta studies)!!!
+                           time-=dCorr;
+                           tofCorr =distDiffBotInNs ;
+                           time-=tofCorr;
+                           //
+                           //Chi2                      =      38.8445
+                           //NDf                       =            8
+                           //p0                        =    -0.105947   +/-   0.0383298   
+                           //p1                        =    0.0122072   +/-   0.000924563
                        }
                        else
                            throw std::runtime_error("Muon origin unknown 1");
@@ -814,26 +890,28 @@ int main(int argc, char *argv[]){
                        timeErr  = subCTCmbtimeVtxErr.at(clusterStart); 
                        if( hem ==1)
                        {
-                           //tofCorr = subCTtof.at(clusterStart) ;
-                           tofCorr = subCTtofImproved.at(clusterStart) ;
-                           time+=tofCorr;
+                           //tofCorr = subCTtofImproved.at(clusterStart) ;
                            timeNotZCorr = time;
-                           //zCorr = (0.001777738*subCTinnerVZtop.at(clusterStart) )+ (0.000103351*TMath::Power(subCTinnerVZtop.at(clusterStart),2)) ;
-                           zCorr = (0.00174188*subCTinnerVZtop.at(clusterStart) )+ (0.000121236*TMath::Power(subCTinnerVZtop.at(clusterStart),2)) ; //improved
-                           time-=zCorr;
-                           //p0                        =     -3.77326   +/-   0.035138    
-                           //p1                        =   0.00177773   +/-   0.000565477 
-                           //p2                        =  0.000103351   +/-   7.75679e-06
+                           //zCorr = (0.00174188*subCTinnerVZtop.at(clusterStart) )+ (0.000121236*TMath::Power(subCTinnerVZtop.at(clusterStart),2)) ; //improved
+                           dCorr = 0.00733513*distVtx   ; // dist improved
+                           time-=dCorr;
+                           tofCorr = distDiffTopInNs;
+                           time+=tofCorr;
+                           //
+                           //Chi2                      =       229.21
+                           //NDf                       =           10
+                           //p0                        =     -6.18775   +/-   0.0476985   
+                           //p1                        =   0.00733513   +/-   0.000970881
                        }
                        else if(hem == -1)
                        {
                            tofCorr = 0;
                            timeNotZCorr = time;
-                           zCorr = (0.0055762*subCTinnerVZtop.at(clusterStart) ) ;
-                           time-=zCorr;
-                           //p0                        =     -6.02424   +/-   0.025917    
-                           //p1                        =    0.0055762   +/-   0.000652371
-                           //interestingly, it is more pol1, than pol 2
+                           //zCorr = (0.0055762*subCTinnerVZtop.at(clusterStart) ) ;
+                           //no correction
+                           tofCorr =distDiffBotInNs ;
+                           time-=tofCorr;
+                           time+=7;
                        }
                        else
                            throw std::runtime_error("Muon origin unknown 1");
@@ -860,6 +938,10 @@ int main(int argc, char *argv[]){
                            //if(! (subCTinnerVZtop.at(clusterStart)> -50 && subCTinnerVZtop.at(clusterStart)<50) ) //z/correction
                            //   continue;
                            
+                           if(distVtx > 100)
+                               continue;
+
+                           
                            vnrOfHitsVsError.at(partPos)->Fill(timeErr, subCTnrOfMuHits.at(clusterStart));
                            nrOfSectorsVsError.at(partPos)->Fill( timeErr, subCTsectorsOfDT.at(clusterStart));
                            chargeVsFreeInverseBeta.at(partPos)->Fill( subCTMuonCombinedFreeInverseBeta.at(clusterStart), subCTstripChargeTotCharge.at(clusterStart) );
@@ -875,11 +957,11 @@ int main(int argc, char *argv[]){
 
                            if(time > -20 && time < 20) //avoid mixing!
                            {
-                               //if( muTrack == "muTop" && subCTMuOrigin.at(clusterStart) ==1 && hem == -1 && subtsosrhglobalphi.at(m)<0)
-                               //{
+                               if( muTrack == "muTop" && subCTMuOrigin.at(clusterStart) ==1 && hem == -1 && subtsosrhglobalphi.at(m)<0)
+                               {
                                    if(subCTMuontrackDirection.at(clusterStart) >0 )
                                        continue;
-                               //}
+                               }
                                int upTime = ceil(abs(time));
                                if(time<0)
                                  upTime = upTime * -1;
@@ -908,12 +990,19 @@ int main(int argc, char *argv[]){
                                }
 
                                timingDirection.at(partPos)->Fill(subCTMuontrackDirection.at(clusterStart));
-                               beta.at(partPos)->Fill(subCTMuonCombinedFreeInverseBeta.at(clusterStart));
                                timing.at(partPos)->Fill(time);
+                               timingNC.at(partPos)->Fill(timeNotZCorr);
                                timeVsVz.at(partPos)->Fill( subCTinnerVZtop.at(clusterStart), time );
+                               betaVsVx.at(partPos)->Fill( subCTinnerVX.at(clusterStart), subCTMuonCombinedFreeInverseBeta.at(clusterStart) );
+                               betaVsVy.at(partPos)->Fill( subCTinnerVY.at(clusterStart), subCTMuonCombinedFreeInverseBeta.at(clusterStart) );
+                               betaVsVz.at(partPos)->Fill( subCTinnerVZtop.at(clusterStart), subCTMuonCombinedFreeInverseBeta.at(clusterStart));
+                               betaVsDist.at(partPos)->Fill( distVtx , subCTMuonCombinedFreeInverseBeta.at(clusterStart) );
+                               betaVsTime.at(partPos)->Fill( time , subCTMuonCombinedFreeInverseBeta.at(clusterStart) );
                                timeVsVzLayers->Fill(  subCTinnerVZtop.at(clusterStart), time) ;
                                timeVsVxLayers->Fill(  subCTinnerVX.at(clusterStart), time) ;
                                timeVsVyLayers->Fill(  subCTinnerVY.at(clusterStart), time) ;
+                               timeVsDistLayers->Fill(  distVtx , time) ;
+                               timeVsDistLayersNotDistCorr->Fill(  distVtx , timeNotZCorr ) ;
                                timeVsVzLayersNotZCorr->Fill(  subCTinnerVZtop.at(clusterStart), timeNotZCorr ) ;
                                innerZ.at(partPos)->Fill( subCTinnerZtop.at(clusterStart) );
                                innerVZ.at(partPos)->Fill( subCTinnerVZtop.at(clusterStart) );
@@ -929,12 +1018,19 @@ int main(int argc, char *argv[]){
                                        continue;
                                }*/
                            
+                               if(abs(distVtx) < 50)
+                                   beta.at(partPos)->Fill(subCTMuonCombinedFreeInverseBeta.at(clusterStart));
+
                                timeMedian.at(partPos).push_back(time);
                                /*if( muTrack == "muTop" && subCTMuOrigin.at(clusterStart) ==1 && hem == -1 && subtsosrhglobalphi.at(m)<0)
                                {
                                   if(m%7!=0)
                                       continue;
                                }*/
+                           //if(subCTinnerVZtop.at(clusterStart)> -50 && subCTinnerVZtop.at(clusterStart)<50) //distVtx
+                           //if(subCTinnerVZtop.at(clusterStart)< -50 || subCTinnerVZtop.at(clusterStart)>50) //distVtx
+                           //
+                           //
 			       if(subCTstripCharge.at(clusterStart+1) != -333)
 				   narrowTrackSharing1Data.at(partPos)->Fill((float) subCTstripCharge.at(clusterStart+1)/subCTstripCharge.at(clusterStart+2));
 			       if(subCTstripCharge.at(clusterStart+3) != -333)
@@ -945,11 +1041,11 @@ int main(int argc, char *argv[]){
 				   narrowTrackSharing2Data.at(partPos)->Fill( (float) subCTstripCharge.at(clusterStart+4)/subCTstripCharge.at(clusterStart+2));
 
                            }
-                           if(subCTinnerVZtop.at(clusterStart)> -50 && subCTinnerVZtop.at(clusterStart)<50)
+                           if(subCTinnerVZtop.at(clusterStart)> -50 && subCTinnerVZtop.at(clusterStart)<50) //distVtx
                            {
 		               chargeCenter.at(partPos)->Fill( time  , subCTstripChargeTotCharge.at(clusterStart) );
                            }
-                           if(subCTinnerVZtop.at(clusterStart)< -50 || subCTinnerVZtop.at(clusterStart)>50)
+                           if(subCTinnerVZtop.at(clusterStart)< -50 || subCTinnerVZtop.at(clusterStart)>50) //distVtx
                            {
 		               chargeEdge.at(partPos)->Fill( time , subCTstripChargeTotCharge.at(clusterStart) ) ;
                            }
@@ -1081,7 +1177,43 @@ int main(int argc, char *argv[]){
 
 
        narrowTrackSharing1DataCan.at(c)->cd();
-       TF1* ffit  =new TF1("f1","gaus", 0.0,0.3); //different range for different geometries
+      float lowr1 = 0;
+      float highr1 = 0;
+      float lowr2 = 0;
+      float highr2 = 0;
+     std::size_t found = ((string) narrowTrackSharing1Data.at(c)->GetName()).find("TIB1");
+      if(found!=std::string::npos)
+      {
+          lowr1 = -0.05 ;
+          highr1 = 0.3 ;
+          lowr2 = -0.05 ;
+          highr2 = 0.15 ;
+      }
+     found =   ((string) narrowTrackSharing1Data.at(c)->GetName()).find("TIB2");
+      if(found!=std::string::npos)
+      {
+          lowr1 = -0.05 ;
+          highr1 = 0.2 ;
+          lowr2 = -0.1 ;
+          highr2 = 0.1 ;
+      }
+      found =   ((string) narrowTrackSharing1Data.at(c)->GetName()).find("TOB2");
+      if(found!=std::string::npos)
+      {
+          lowr1 = -0.05 ;
+          highr1 = 0.25 ;
+          lowr2 = -0.05 ;
+          highr2 = 0.15 ;
+      }
+      found =   ((string) narrowTrackSharing1Data.at(c)->GetName()).find("TOB1");
+      if(found!=std::string::npos)
+      {
+          lowr1 = -0.05 ;
+          highr1 = 0.3 ;
+          lowr2 = -0.1 ;
+          highr2 = 0.15 ;
+      }
+       TF1* ffit  =new TF1("f1","gaus", lowr1, highr1); //different range for different geometries
        narrowTrackSharing1Data.at(c)->Fit(ffit, "R");
        double fitMean = ffit->GetParameter(1);
        double fitMeanErr = ffit->GetParError(1);
@@ -1098,7 +1230,7 @@ int main(int argc, char *argv[]){
 
 
        narrowTrackSharing2DataCan.at(c)->cd();
-       TF1* ffit2  =new TF1("f2","gaus", -0.15,0.15);
+       TF1* ffit2  =new TF1("f2","gaus", lowr2, highr2);
        narrowTrackSharing2Data.at(c)->Fit(ffit2, "R");
        double fitMean2 = ffit2->GetParameter(1);
        double fitMeanErr2 = ffit2->GetParError(1);
@@ -1107,7 +1239,9 @@ int main(int argc, char *argv[]){
        double fitProb2 = TMath::Prob(fitChi22, fitNdof2  );
        cout << narrowTrackSharing2Data.at(c)->GetName()+(string)part+(string)muTrack << " mean " << fitMean2 << " +- " << fitMeanErr2 << " chi2 " << fitChi22 << " ndof " << fitNdof2 << " prob " << fitProb2 << endl; 
        cout << " " << endl;
-       narrowTrackSharing2Data.at(c)->Draw(""); 
+       //ffit2->SetLineColor(kRed); 
+       //ffit2->Draw(""); 
+       narrowTrackSharing2Data.at(c)->Draw("");
        narrowTrackSharing2DataCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ narrowTrackSharing2Data.at(c)->GetName()+(string)part+(string)muTrack + ".root").c_str());
        narrowTrackSharing2DataCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ narrowTrackSharing2Data.at(c)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
 
@@ -1213,11 +1347,11 @@ int main(int argc, char *argv[]){
        narrowTrackSharing2Data10to14Can.at(c)->SaveAs(("output/"+(string)dir+"/"+ narrowTrackSharing2Data10to14.at(c)->GetName()+(string)part+(string)muTrack+ ".root").c_str());
        narrowTrackSharing2Data10to14Can.at(c)->SaveAs(("output/"+(string)dir+"/"+ narrowTrackSharing2Data10to14.at(c)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
 
-       narrowTrackSharing2DataCan.at(c)->cd();
+       /*narrowTrackSharing2DataCan.at(c)->cd();
        narrowTrackSharing2Data.at(c)->DrawNormalized(""); 
        narrowTrackSharing2DataCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ narrowTrackSharing2Data.at(c)->GetName() + ".root").c_str());
        narrowTrackSharing2DataCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ narrowTrackSharing2Data.at(c)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
-       
+       */
        widthCan.at(c)->cd();
        width.at(c)->GetXaxis()->SetTitle("time");
        width.at(c)->GetYaxis()->SetTitle("cluster width");
@@ -1242,7 +1376,10 @@ int main(int argc, char *argv[]){
        timingCan.at(c)->cd();
        timing.at(c)->GetXaxis()->SetTitle("time");
        timing.at(c)->GetYaxis()->SetTitle("");
-       timing.at(c)->Draw("");
+       timing.at(c)->SetLineColor(kBlue);
+       timingNC.at(c)->SetLineColor(kRed);
+       timing.at(c)->Draw("hist");
+       timingNC.at(c)->Draw("same hist");
        timingCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ timing.at(c)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
        timingCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ timing.at(c)->GetName()+(string)part+(string)muTrack+ ".root").c_str());
 
@@ -1359,6 +1496,43 @@ int main(int argc, char *argv[]){
        timeVsVzCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ timeVsVz.at(c)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
        timeVsVzCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ timeVsVz.at(c)->GetName()+(string)part+(string)muTrack+ ".root").c_str());
 
+       betaVsVxCan.at(c)->cd();
+       betaVsVx.at(c)->GetXaxis()->SetTitle("vx");
+       betaVsVx.at(c)->GetYaxis()->SetTitle("beta");
+       betaVsVx.at(c)->Draw("");
+       betaVsVxCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ betaVsVx.at(c)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
+       betaVsVxCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ betaVsVx.at(c)->GetName()+(string)part+(string)muTrack+ ".root").c_str());
+
+       betaVsVyCan.at(c)->cd();
+       betaVsVy.at(c)->GetXaxis()->SetTitle("vy");
+       betaVsVy.at(c)->GetYaxis()->SetTitle("beta");
+       betaVsVy.at(c)->Draw("");
+       betaVsVyCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ betaVsVy.at(c)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
+       betaVsVyCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ betaVsVy.at(c)->GetName()+(string)part+(string)muTrack+ ".root").c_str());
+
+       betaVsVzCan.at(c)->cd();
+       betaVsVz.at(c)->GetXaxis()->SetTitle("vz");
+       betaVsVz.at(c)->GetYaxis()->SetTitle("beta");
+       betaVsVz.at(c)->Draw("");
+       betaVsVzCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ betaVsVz.at(c)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
+       betaVsVzCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ betaVsVz.at(c)->GetName()+(string)part+(string)muTrack+ ".root").c_str());
+
+       betaVsDistCan.at(c)->cd();
+       betaVsDist.at(c)->SetTitle("");
+       betaVsDist.at(c)->GetXaxis()->SetTitle("distance from IP");
+       betaVsDist.at(c)->GetYaxis()->SetTitle("free inverse beta");
+       betaVsDist.at(c)->Draw("");
+       betaVsDistCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ betaVsDist.at(c)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
+       betaVsDistCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ betaVsDist.at(c)->GetName()+(string)part+(string)muTrack+ ".root").c_str());
+
+       betaVsTimeCan.at(c)->cd();
+       betaVsTime.at(c)->SetTitle("");
+       betaVsTime.at(c)->GetXaxis()->SetTitle("time");
+       betaVsTime.at(c)->GetYaxis()->SetTitle("free inverse beta");
+       betaVsTime.at(c)->Draw("");
+       betaVsTimeCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ betaVsTime.at(c)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
+       betaVsTimeCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ betaVsTime.at(c)->GetName()+(string)part+(string)muTrack+ ".root").c_str());
+
        
        for(uint32_t j=0; j<40; j++)
        {
@@ -1383,8 +1557,9 @@ int main(int argc, char *argv[]){
        }
 
        etaOneaAsTimeCan.at(c)->cd();
-       etaOneaAsTime.at(c)->GetXaxis()->SetTitle("inOut");
-       etaOneaAsTime.at(c)->GetYaxis()->SetTitle("eta #pm 1");
+       etaOneaAsTime.at(c)->SetTitle("");
+       etaOneaAsTime.at(c)->GetXaxis()->SetTitle("time");
+       etaOneaAsTime.at(c)->GetYaxis()->SetTitle("#eta #pm 1");
        etaOneaAsTime.at(c)->Draw("");
        etaOneaAsTimeCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ etaOneaAsTime.at(c)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
        etaOneaAsTimeCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ etaOneaAsTime.at(c)->GetName()+(string)part+(string)muTrack+ ".root").c_str());
@@ -1484,6 +1659,15 @@ int main(int argc, char *argv[]){
        timeVsVyLayersCan->SaveAs(("output/"+(string)dir+"/"+ timeVsVyLayers->GetName()+(string)part+(string)muTrack+ ".root").c_str());
        timeVsVyLayersCan->SaveAs(("output/"+(string)dir+"/"+ timeVsVyLayers->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
 
+       timeVsDistLayersCan->cd();
+       timeVsDistLayersNotDistCorr->GetXaxis()->SetTitle("distance from IP");
+       timeVsDistLayersNotDistCorr->GetYaxis()->SetTitle("time");
+       timeVsDistLayersNotDistCorr->SetTitle("");
+       timeVsDistLayersNotDistCorr->SetLineColor(kRed); 
+       timeVsDistLayersNotDistCorr->Draw(""); 
+       timeVsDistLayers->Draw("same"); 
+       timeVsDistLayersCan->SaveAs(("output/"+(string)dir+"/"+ timeVsDistLayers->GetName()+(string)part+(string)muTrack+ ".root").c_str());
+       timeVsDistLayersCan->SaveAs(("output/"+(string)dir+"/"+ timeVsDistLayers->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
 
        chargePerUnitLayersCan->cd();
        chargePerUnitLayers->GetXaxis()->SetTitle("time");

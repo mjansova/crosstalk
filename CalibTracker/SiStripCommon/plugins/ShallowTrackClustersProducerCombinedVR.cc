@@ -297,6 +297,7 @@ ShallowTrackClustersProducerCombinedVR::ShallowTrackClustersProducerCombinedVR(c
   produces <std::vector<float> >              ( "outerZtop"       );
   produces <std::vector<float> >              ( "outerEtatop"       );
   produces <std::vector<float> >              ( "muonsDTMuontrackLastWheel"       );
+  produces <std::vector<float> >              ( "muonsDTFreeInverseBeta"       );
 
   produces <std::vector<float> >              ( "CTouterXtop"       );
   produces <std::vector<float> >              ( "CTouterYtop"       );
@@ -309,6 +310,9 @@ ShallowTrackClustersProducerCombinedVR::ShallowTrackClustersProducerCombinedVR(c
   produces <std::vector<float> >              ( "CTinnerVX"       );
   produces <std::vector<float> >              ( "CTinnerVY"       );
   produces <std::vector<float> >              ( "CTEtatop"       );
+  produces <std::vector<float> >              ( "CTglobalX"       );
+  produces <std::vector<float> >              ( "CTglobalY"       );
+  produces <std::vector<float> >              ( "CTglobalZ"       );
   produces <std::vector<float> >              ( "CTtof"       );
   produces <std::vector<float> >              ( "CTtofImproved"       );
   produces <std::vector<float> >              ( "CTmuonsDTMuontrackLastWheel"       );
@@ -512,6 +516,7 @@ produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto nrofevents            = std::make_unique<unsigned int>();
 
   auto muonsDTMuontrackInOutTop = std::make_unique<std::vector<float>>(); 
+  auto muonsDTFreeInverseBeta = std::make_unique<std::vector<float>>(); 
     auto               muonsDTMuontrackOutInTop = std::make_unique<std::vector<float>>() ;
     auto               muonsDTMuontrackInOutErrTop = std::make_unique<std::vector<float>>(); 
     auto               muonsDTMuontrackOutInErrTop = std::make_unique<std::vector<float>>() ;
@@ -535,6 +540,9 @@ produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto                 CTinnerVY =  std::make_unique<std::vector<float>>();
   auto                 CTinnerVX =  std::make_unique<std::vector<float>>();
   auto                 CTEtatop =  std::make_unique<std::vector<float>>();
+  auto                 CTglobalX =  std::make_unique<std::vector<float>>();
+  auto                 CTglobalY =  std::make_unique<std::vector<float>>();
+  auto                 CTglobalZ =  std::make_unique<std::vector<float>>();
   auto                 CTtof =  std::make_unique<std::vector<float>>();
   auto                 CTtofImproved =  std::make_unique<std::vector<float>>();
   auto                 CTouterXtop =  std::make_unique<std::vector<float>>();
@@ -719,7 +727,6 @@ cout << "before good track " << endl;
                  DTChamberId DTchamber((*muHit)->geographicalId());
                  lastDTchamber =DTchamber;
                  DTLayerId DTLayer((*muHit)->geographicalId());
-                 muonsDTMuontrackDirection->push_back(static_cast<int>(timeMapDT[muonR].direction()));
                  muonsDTMuontrackInOut->push_back(timeMapDT[muonR].timeAtIpInOut());
                  muonsDTMuontrackOutIn->push_back(timeMapDT[muonR].timeAtIpOutIn());
                  muonsDTMuontrackSector->push_back( DTchamber.sector() );
@@ -763,7 +770,10 @@ cout << "before good track " << endl;
                      muOrigin->push_back(3);
                      bothMu = true;
                  }
-
+                 else
+                 {
+                     muOrigin->push_back(4);
+                 }
              //if(topTrack)
              if(true)
              {
@@ -771,32 +781,34 @@ cout << "before good track " << endl;
               cout << "nr of hits combined " << muonR->combinedMuon()->recHitsSize() << " nr of time measurements in DT " << timeMapDT[muonR].timeAtIpInOutHIT().size() << " nr of time measurements combined " << timeMapCmb[muonR].timeAtIpInOutHIT().size() << endl;
               cout << "nr of hits global  " << muTrack->recHitsSize() << " nr of time measurements in DT " << timeMapDT[muonR].timeAtIpInOutHIT().size() << " nr of time measurements combined " << timeMapCmb[muonR].timeAtIpInOutHIT().size() << endl;
              if(muTrackSA->recHitsSize() != timeMapDT[muonR].timeAtIpInOutHIT().size())
-                 cout << "hit and time sizes not the same!! " << endl;
+	          cout << "hit and time sizes not the same!! " << endl;
 
-                 muonsDTMuontrackInOutTop->push_back(timeMapDT[muonR].timeAtIpInOut()); 
-                 muonsDTMuontrackOutInTop->push_back(timeMapDT[muonR].timeAtIpOutIn()) ;
-                 muonsDTMuontrackInOutErrTop->push_back(timeMapDT[muonR].timeAtIpInOutErr()); 
-                 muonsDTMuontrackOutInErrTop->push_back(timeMapDT[muonR].timeAtIpOutInErr()) ;
-                 innerXtop->push_back( muTrack->innerPosition().x());
-                 innerYtop->push_back( muTrack->innerPosition().y());
-                 innerZtop->push_back( muTrack->innerPosition().z());
-                 outerXtop->push_back( muTrack->outerPosition().x());
-                 outerYtop->push_back( muTrack->outerPosition().y());
-                 outerZtop->push_back( muTrack->outerPosition().z());
-                 outerEtatop->push_back( muTrack->outerEta());
-                 muonsDTMuontrackLastWheel->push_back( lastDTchamber.wheel() );
-                 innerVZtop->push_back( muTrack->vz());
-                 innerVX->push_back( muTrack->vx());
-                 innerVY->push_back( muTrack->vy());
-                 Etatop->push_back( muTrack->eta());
-                 for(uint32_t tzero = 0; tzero< timeMapDT[muonR].timeAtIpInOutHIT().size(); tzero++)
-                 {
-                     tzeroMinTimeInOut->push_back(timeMapDT[muonR].timeAtIpInOutHIT().at(tzero) - timeMapDT[muonR].timeAtIpInOut() );
-                     tzeroMinTimeOutIn->push_back(timeMapDT[muonR].timeAtIpOutInHIT().at(tzero) - timeMapDT[muonR].timeAtIpOutIn() );
-                 }
+			 muonsDTMuontrackInOutTop->push_back(timeMapDT[muonR].timeAtIpInOut()); 
+			 muonsDTMuontrackOutInTop->push_back(timeMapDT[muonR].timeAtIpOutIn()) ;
+			 muonsDTMuontrackInOutErrTop->push_back(timeMapDT[muonR].timeAtIpInOutErr()); 
+			 muonsDTMuontrackOutInErrTop->push_back(timeMapDT[muonR].timeAtIpOutInErr()) ;
+                         muonsDTMuontrackDirection->push_back(static_cast<int>(timeMapDT[muonR].direction()));
+			 innerXtop->push_back( muTrack->innerPosition().x());
+			 innerYtop->push_back( muTrack->innerPosition().y());
+			 innerZtop->push_back( muTrack->innerPosition().z());
+			 outerXtop->push_back( muTrack->outerPosition().x());
+			 outerYtop->push_back( muTrack->outerPosition().y());
+			 outerZtop->push_back( muTrack->outerPosition().z());
+			 outerEtatop->push_back( muTrack->outerEta());
+			 muonsDTMuontrackLastWheel->push_back( lastDTchamber.wheel() );
+			 innerVZtop->push_back( muTrack->vz());
+			 innerVX->push_back( muTrack->vx());
+			 innerVY->push_back( muTrack->vy());
+			 Etatop->push_back( muTrack->eta());
+		         muonsDTFreeInverseBeta->push_back(timeMapDT[muonR].freeInverseBeta());
+			 for(uint32_t tzero = 0; tzero< timeMapDT[muonR].timeAtIpInOutHIT().size(); tzero++)
+			 {
+			     tzeroMinTimeInOut->push_back(timeMapDT[muonR].timeAtIpInOutHIT().at(tzero) - timeMapDT[muonR].timeAtIpInOut() );
+			     tzeroMinTimeOutIn->push_back(timeMapDT[muonR].timeAtIpOutInHIT().at(tzero) - timeMapDT[muonR].timeAtIpOutIn() );
+			 }
 
-             }
-     }
+	       }
+    }
 
    //if(topTrack == false) //@MJ@ TODO not forget to remove that
    //      continue;
@@ -1125,6 +1137,9 @@ cout << " after good track " << endl;
               CTinnerVX->push_back( track->vx());
               CTinnerVY->push_back( track->vy());
               CTEtatop->push_back( track->eta());
+              CTglobalX->push_back( tsos.globalPosition().x());
+              CTglobalY->push_back( tsos.globalPosition().y());
+              CTglobalZ->push_back( tsos.globalPosition().z());
 
               float xterm =  TMath::Power(tsos.globalPosition().x() - track->vx(), 2);
               float yterm =  TMath::Power(tsos.globalPosition().y() - track->vy(), 2);
@@ -1421,6 +1436,7 @@ cout << " after good track " << endl;
   iEvent.put(std::move(outerZtop),       "outerZtop"        );
   iEvent.put(std::move(outerEtatop),       "outerEtatop"        );
   iEvent.put(std::move(muonsDTMuontrackLastWheel),       "muonsDTMuontrackLastWheel"        );
+  iEvent.put(std::move(muonsDTFreeInverseBeta),       "muonsDTFreeInverseBeta"        );
 
 
   iEvent.put(std::move(CTouterXtop),       "CTouterXtop"        );
@@ -1435,6 +1451,9 @@ cout << " after good track " << endl;
   iEvent.put(std::move(CTinnerVX),       "CTinnerVX"        );
   iEvent.put(std::move(CTinnerVY),       "CTinnerVY"        );
   iEvent.put(std::move(CTEtatop),       "CTEtatop"        );
+  iEvent.put(std::move(CTglobalX),       "CTglobalX"        );
+  iEvent.put(std::move(CTglobalY),       "CTglobalY"        );
+  iEvent.put(std::move(CTglobalZ),       "CTglobalZ"        );
   iEvent.put(std::move(CTtof),       "CTtof"        );
   iEvent.put(std::move(CTtofImproved),       "CTtofImproved"        );
 
