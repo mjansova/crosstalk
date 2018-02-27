@@ -4,8 +4,10 @@
 //./crossTalkMeasurementGeneral test_shallowTrackCRUZET_2017ZSampltest2.root crossTalkMeasurementZS bottom muBottom
 //./crossTalkMeasurementGeneral test_shallowTrackCRUZET_2017testsVRZS.root crossTalkVRasZS bottom muBottom
 //./crossTalkMeasurementGeneral test_shallowTrackCRUZET_2017ZSCRAFT.root crossTalkCRAFTZS bottom muBottom
-//./crossTalkMeasurementGeneral test_shallowTrackCRUZET_2017testsLatestHopefully2.root combinatonOfHitsTanCut bottom muBottom
+//./crossTalkMeasurementGeneral test_shallowTrackCRUZET_2017testsLatestHopefully.root combinatonOfHitsTanCut bottom muBottom
 //./crossTalkMeasurementGeneral test_shallowTrackCRUZET_2017lhcSTAMuons.root lhcMu bottom muBottom
+//./crossTalkMeasurementGeneral test_shallowTrackCRUZET_2017testsLatestHopefully.root combinatonOfHits bottom muTop
+//./crossTalkMeasurementGeneral test_shallowTrackCRUZET_2017onlyGoodRun.root combinatonOfHitsOneRun bottom muTop
 
 
 #include <fstream>
@@ -60,7 +62,7 @@ double eta2( double mean1, double mean2 );
 int main(int argc, char *argv[]){
 
  //gStyle->SetOptStat(1111111);
- gStyle->SetOptStat(0);
+// gStyle->SetOptStat(0);
  gROOT->ForceStyle();
  
  TH1::SetDefaultSumw2();
@@ -175,6 +177,7 @@ int main(int argc, char *argv[]){
        vector<float>*  CTglobalZ = 0;
        vector<float>*  CTglobalX = 0;
        vector<float>*  CTglobalY = 0;
+       vector<float>*  CTlocalX = 0;
 
        vector<float>  subCTinnerXtop;
        vector<float>  subCTinnerYtop;
@@ -189,6 +192,7 @@ int main(int argc, char *argv[]){
        vector<float>  subCTglobalX ;
        vector<float>  subCTglobalY ;
        vector<float>  subCTglobalZ ;
+       vector<float>  subCTlocalX ;
 
        float bx;
        vector<float> bxPerStrip;
@@ -241,6 +245,7 @@ int main(int argc, char *argv[]){
        t1->SetBranchAddress("CTglobalX",  &CTglobalX );
        t1->SetBranchAddress("CTglobalY",  &CTglobalY );
        t1->SetBranchAddress("CTglobalZ",  &CTglobalZ );
+       t1->SetBranchAddress("CTlocalX",  &CTlocalX );
 
    ///adata always first
     
@@ -311,6 +316,7 @@ int main(int argc, char *argv[]){
                        subCTglobalX.push_back(CTglobalX->at(k));
                        subCTglobalY.push_back(CTglobalY->at(k));
                        subCTglobalZ.push_back(CTglobalZ->at(k));
+                       subCTlocalX.push_back(CTlocalX->at(k));
 
                        subCTstripChargeTotChargeRescaled.push_back(CTstripChargeTotChargeRescaled->at(k));
                        subCTtof.push_back(CTtof->at(k));
@@ -348,6 +354,18 @@ int main(int argc, char *argv[]){
        vector<TH1F*> narrowTrackSharing1Data;
        vector<TH1F*> narrowTrackSharing2Data;
 
+       vector<TH1F*>  narrowTrackSharing1DataGoodX;
+       vector<TH1F*>  narrowTrackSharing1DataBadX;
+       vector<TH1F*>  narrowTrackSharing1DataLowCharge;
+       vector<TH1F*>  narrowTrackSharing1DataMidCharge;
+       vector<TH1F*>  narrowTrackSharing1DataHighCharge;
+
+       vector<TH1F*>  narrowTrackSharing2DataGoodX;
+       vector<TH1F*>  narrowTrackSharing2DataBadX;
+       vector<TH1F*>  narrowTrackSharing2DataLowCharge;
+       vector<TH1F*>  narrowTrackSharing2DataMidCharge;
+       vector<TH1F*>  narrowTrackSharing2DataHighCharge;
+
        vector< vector<TH1F*> > narrowTrackSharing1DataEvolution;
        vector< vector<TH1F*> > narrowTrackSharing2DataEvolution;
        vector< vector<TCanvas*> > narrowTrackSharing1DataEvolutionCan;
@@ -377,6 +395,7 @@ int main(int argc, char *argv[]){
        vector<TCanvas*> timingDirectionCan;
 
        vector<TProfile*> width;
+       vector<TProfile*> widthAsCosPhi;
        vector<TProfile*> charge;
        vector<TProfile*> chargePerUnit;
        vector<TH1F*> timing;
@@ -423,6 +442,19 @@ int main(int argc, char *argv[]){
        vector<TCanvas*> narrowTrackSharing1DataCan;
        vector<TCanvas*> narrowTrackSharing2DataCan;
 
+       vector<TCanvas*>  narrowTrackSharing1DataGoodXCan;
+       vector<TCanvas*>  narrowTrackSharing1DataBadXCan;
+       vector<TCanvas*>  narrowTrackSharing1DataLowChargeCan;
+       vector<TCanvas*>  narrowTrackSharing1DataMidChargeCan;
+       vector<TCanvas*>  narrowTrackSharing1DataHighChargeCan;
+
+       vector<TCanvas*>  narrowTrackSharing2DataGoodXCan;
+       vector<TCanvas*>  narrowTrackSharing2DataBadXCan;
+       vector<TCanvas*>  narrowTrackSharing2DataLowChargeCan;
+       vector<TCanvas*>  narrowTrackSharing2DataMidChargeCan;
+       vector<TCanvas*>  narrowTrackSharing2DataHighChargeCan;
+
+
        vector<TCanvas*> narrowTrackSharing1Data2to6Can;
        vector<TCanvas*> narrowTrackSharing2Data2to6Can;
        vector<TCanvas*> narrowTrackSharing1DataMin2toMin6Can;
@@ -437,6 +469,7 @@ int main(int argc, char *argv[]){
        vector<TCanvas*> narrowTrackSharing2Data10to14Can;
 
        vector<TCanvas*> widthCan;
+       vector<TCanvas*> widthAsCosPhiCan;
 
        vector<TCanvas*> chargeCan;
        vector<TCanvas*> timingCan;
@@ -515,10 +548,40 @@ int main(int argc, char *argv[]){
        narrowTrackSharing1Data10to14Can.resize(20, NULL);
        narrowTrackSharing2Data10to14Can.resize(20, NULL);
 
+
+       narrowTrackSharing1DataGoodXCan.resize(20, NULL);;
+       narrowTrackSharing1DataBadXCan.resize(20, NULL);;
+       narrowTrackSharing1DataLowChargeCan.resize(20, NULL);;
+       narrowTrackSharing1DataMidChargeCan.resize(20, NULL);;
+       narrowTrackSharing1DataHighChargeCan.resize(20, NULL);;
+
+       narrowTrackSharing2DataGoodXCan.resize(20, NULL);;
+       narrowTrackSharing2DataBadXCan.resize(20, NULL);;
+       narrowTrackSharing2DataLowChargeCan.resize(20, NULL);;
+       narrowTrackSharing2DataMidChargeCan.resize(20, NULL);;
+       narrowTrackSharing2DataHighChargeCan.resize(20, NULL);;
+
+
+       narrowTrackSharing1DataGoodX.resize(20, NULL);;
+       narrowTrackSharing1DataBadX.resize(20, NULL);;
+       narrowTrackSharing1DataLowCharge.resize(20, NULL);;
+       narrowTrackSharing1DataMidCharge.resize(20, NULL);;
+       narrowTrackSharing1DataHighCharge.resize(20, NULL);;
+
+       narrowTrackSharing2DataGoodX.resize(20, NULL);;
+       narrowTrackSharing2DataBadX.resize(20, NULL);;
+       narrowTrackSharing2DataLowCharge.resize(20, NULL);;
+       narrowTrackSharing2DataMidCharge.resize(20, NULL);;
+       narrowTrackSharing2DataHighCharge.resize(20, NULL);;
+
+
+
        width.resize(20, NULL);
+       widthAsCosPhi.resize(20, NULL);
        charge.resize(20, NULL);
        chargePerUnit.resize(20, NULL);
        widthCan.resize(20, NULL);
+       widthAsCosPhiCan.resize(20, NULL);
        chargeCan.resize(20, NULL);
        chargePerUnitCan.resize(20, NULL);
 
@@ -693,6 +756,19 @@ int main(int argc, char *argv[]){
                        narrowTrackSharing1Data.at(partPos) = new TH1F( ("narrowTrackSharing1"+ parName).c_str() , ("narrowTrackSharing1"+parName).c_str() , 100, -1, 1 );
                        narrowTrackSharing1DataCan.at(partPos) = new TCanvas( ("cnarrowTrackSharing1"+ parName).c_str() , ("cnarrowTrackSharing1"+parName).c_str()  );
                        narrowTrackSharing1DataEvolution.at(partPos).resize(40, NULL);
+
+                       narrowTrackSharing1DataGoodX.at(partPos) = new TH1F( ("narrowTrackSharing1GoodX"+ parName).c_str() , ("narrowTrackSharing1GoodX"+parName).c_str() , 100, -1, 1 );
+                       narrowTrackSharing1DataBadX.at(partPos) = new TH1F( ("narrowTrackSharing1BadX"+ parName).c_str() , ("narrowTrackSharing1BadX"+parName).c_str() , 100, -1, 1 );
+                       narrowTrackSharing1DataLowCharge.at(partPos) = new TH1F( ("narrowTrackSharing1LowCharge"+ parName).c_str() , ("narrowTrackSharing1LowCharge"+parName).c_str() , 100, -1, 1 );
+                       narrowTrackSharing1DataMidCharge.at(partPos) = new TH1F( ("narrowTrackSharing1MidCharge"+ parName).c_str() , ("narrowTrackSharing1MidCharge"+parName).c_str() , 100, -1, 1 );
+                       narrowTrackSharing1DataHighCharge.at(partPos) = new TH1F( ("narrowTrackSharing1HighCharge"+ parName).c_str() , ("narrowTrackSharing1HighCharge"+parName).c_str() , 100, -1, 1 );
+
+                       narrowTrackSharing1DataGoodXCan.at(partPos) = new TCanvas( ("narrowTrackSharing1GoodXCan"+ parName).c_str() , ("narrowTrackSharing1GoodXCan"+parName).c_str()  );
+                       narrowTrackSharing1DataBadXCan.at(partPos) = new TCanvas( ("narrowTrackSharing1BadXCan"+ parName).c_str() , ("narrowTrackSharing1BadXCan"+parName).c_str()  );
+                       narrowTrackSharing1DataLowChargeCan.at(partPos) = new TCanvas( ("narrowTrackSharing1LowChargeCan"+ parName).c_str() , ("narrowTrackSharing1LowChargeCan"+parName).c_str()  );
+                       narrowTrackSharing1DataMidChargeCan.at(partPos) = new TCanvas( ("narrowTrackSharing1MidChargeCan"+ parName).c_str() , ("narrowTrackSharing1MidChargeCan"+parName).c_str()  );
+                       narrowTrackSharing1DataHighChargeCan.at(partPos) = new TCanvas( ("narrowTrackSharing1HighChargeCan"+ parName).c_str() , ("narrowTrackSharing1HighChargeCan"+parName).c_str()  );
+
                        //narrowTrackSharing1DataEvolutionCan.at(partPos).resize(40, NULL);
                        for(uint32_t v=0; v<40; v++)
                        {
@@ -709,6 +785,18 @@ int main(int argc, char *argv[]){
                        narrowTrackSharing2Data.at(partPos) = new TH1F( ("narrowTrackSharing2"+ parName).c_str() , ("narrowTrackSharing2"+parName).c_str() , 100, -1, 1 );
                        narrowTrackSharing2DataCan.at(partPos) = new TCanvas( ("cnarrowTrackSharing2"+ parName).c_str() , ("cnarrowTrackSharing2"+parName).c_str());
                        narrowTrackSharing2DataEvolution.at(partPos).resize(40, NULL);
+
+                       narrowTrackSharing2DataGoodX.at(partPos) = new TH1F( ("narrowTrackSharing2GoodX"+ parName).c_str() , ("narrowTrackSharing2GoodX"+parName).c_str() , 100, -1, 1 );
+                       narrowTrackSharing2DataBadX.at(partPos) = new TH1F( ("narrowTrackSharing2BadX"+ parName).c_str() , ("narrowTrackSharing2BadX"+parName).c_str() , 100, -1, 1 );
+                       narrowTrackSharing2DataLowCharge.at(partPos) = new TH1F( ("narrowTrackSharing2LowCharge"+ parName).c_str() , ("narrowTrackSharing2LowCharge"+parName).c_str() , 100, -1, 1 );
+                       narrowTrackSharing2DataMidCharge.at(partPos) = new TH1F( ("narrowTrackSharing2MidCharge"+ parName).c_str() , ("narrowTrackSharing2MidCharge"+parName).c_str() , 100, -1, 1 );
+                       narrowTrackSharing2DataHighCharge.at(partPos) = new TH1F( ("narrowTrackSharing2HighCharge"+ parName).c_str() , ("narrowTrackSharing2HighCharge"+parName).c_str() , 100, -1, 1 );
+
+                       narrowTrackSharing2DataGoodXCan.at(partPos) = new TCanvas( ("narrowTrackSharing2GoodXCan"+ parName).c_str() , ("narrowTrackSharing2GoodXCan"+parName).c_str()  );
+                       narrowTrackSharing2DataBadXCan.at(partPos) = new TCanvas( ("narrowTrackSharing2BadXCan"+ parName).c_str() , ("narrowTrackSharing2BadXCan"+parName).c_str()  );
+                       narrowTrackSharing2DataLowChargeCan.at(partPos) = new TCanvas( ("narrowTrackSharing2LowChargeCan"+ parName).c_str() , ("narrowTrackSharing2LowChargeCan"+parName).c_str()  );
+                       narrowTrackSharing2DataMidChargeCan.at(partPos) = new TCanvas( ("narrowTrackSharing2MidChargeCan"+ parName).c_str() , ("narrowTrackSharing2MidChargeCan"+parName).c_str()  );
+                       narrowTrackSharing2DataHighChargeCan.at(partPos) = new TCanvas( ("narrowTrackSharing2HighChargeCan"+ parName).c_str() , ("narrowTrackSharing2HighChargeCan"+parName).c_str()  );
                        //narrowTrackSharing2DataEvolutionCan.at(partPos).resize(40, NULL);
                        for(uint32_t v=0; v<40; v++)
                        {
@@ -721,6 +809,7 @@ int main(int argc, char *argv[]){
                    if(width.at(partPos) == NULL)
                    {
 		       width.at(partPos) =  new TProfile(("width"+ parName).c_str(), ("width"+ parName).c_str() , 200, -100, 100, 0, 10 ) ;
+		       widthAsCosPhi.at(partPos) =  new TProfile(("widthAsCosPhi"+ parName).c_str(), ("widthAsCosPhi"+ parName).c_str() , 10, -1, 1, 0, 10 ) ;
 
 		       charge.at(partPos)=  new TProfile(("charge"+ parName).c_str(), ("charge"+ parName).c_str() , 200, -100, 100, 0, 1000 ) ;
 		       timing.at(partPos)=  new TH1F(("timing"+ parName).c_str(), ("timing"+ parName).c_str() , 50, -20, 20 ) ;
@@ -767,6 +856,7 @@ int main(int argc, char *argv[]){
 
    cout << "in here 2.5" << endl;
 		       widthCan.at(partPos) =   new TCanvas( ("width"+ parName).c_str(), ("width"+ parName).c_str()) ;
+		       widthAsCosPhiCan.at(partPos) =   new TCanvas( ("widthAsCosPhi"+ parName).c_str(), ("widthAsCosPhi"+ parName).c_str()) ;
 
 		       chargeCan.at(partPos)=   new TCanvas( ("charge"+ parName).c_str(), ("charge"+ parName).c_str()) ;
 		       timingCan.at(partPos)=   new TCanvas( ("timing"+ parName).c_str(), ("timing"+ parName).c_str()) ;
@@ -911,7 +1001,7 @@ int main(int argc, char *argv[]){
                            //no correction
                            tofCorr =distDiffBotInNs ;
                            time-=tofCorr;
-                           time+=7;
+                           //time+=7;
                        }
                        else
                            throw std::runtime_error("Muon origin unknown 1");
@@ -941,11 +1031,17 @@ int main(int argc, char *argv[]){
                            if(distVtx > 100)
                                continue;
 
+                               if( muTrack == "muTop" && subCTMuOrigin.at(clusterStart) ==1 && hem == -1 && subtsosrhglobalphi.at(m)<0)
+                               {
+                                   if(subCTMuontrackDirection.at(clusterStart) >0 )
+                                       continue;
+                               }
                            
                            vnrOfHitsVsError.at(partPos)->Fill(timeErr, subCTnrOfMuHits.at(clusterStart));
                            nrOfSectorsVsError.at(partPos)->Fill( timeErr, subCTsectorsOfDT.at(clusterStart));
                            chargeVsFreeInverseBeta.at(partPos)->Fill( subCTMuonCombinedFreeInverseBeta.at(clusterStart), subCTstripChargeTotCharge.at(clusterStart) );
                            width.at(partPos)->Fill(time , subCTstripChargeTotWidth.at(clusterStart));
+                           widthAsCosPhi.at(partPos)->Fill(  cos(subCTstripChargeLocalTrackPhi.at(clusterStart)) , subCTstripChargeTotWidth.at(clusterStart));
                            charge.at(partPos)->Fill(time, subCTstripChargeTotCharge.at(clusterStart));
                            chargePerUnit.at(partPos)->Fill(time, subCTstripChargeTotChargeRescaled.at(clusterStart));
                            if( muTrack == "muTop" && subCTMuOrigin.at(clusterStart) ==1 && hem == -1 && subtsosrhglobalphi.at(m)<0)
@@ -957,11 +1053,6 @@ int main(int argc, char *argv[]){
 
                            if(time > -20 && time < 20) //avoid mixing!
                            {
-                               if( muTrack == "muTop" && subCTMuOrigin.at(clusterStart) ==1 && hem == -1 && subtsosrhglobalphi.at(m)<0)
-                               {
-                                   if(subCTMuontrackDirection.at(clusterStart) >0 )
-                                       continue;
-                               }
                                int upTime = ceil(abs(time));
                                if(time<0)
                                  upTime = upTime * -1;
@@ -999,6 +1090,7 @@ int main(int argc, char *argv[]){
                                betaVsDist.at(partPos)->Fill( distVtx , subCTMuonCombinedFreeInverseBeta.at(clusterStart) );
                                betaVsTime.at(partPos)->Fill( time , subCTMuonCombinedFreeInverseBeta.at(clusterStart) );
                                timeVsVzLayers->Fill(  subCTinnerVZtop.at(clusterStart), time) ;
+                               beta.at(partPos)->Fill(subCTMuonCombinedFreeInverseBeta.at(clusterStart));
                                timeVsVxLayers->Fill(  subCTinnerVX.at(clusterStart), time) ;
                                timeVsVyLayers->Fill(  subCTinnerVY.at(clusterStart), time) ;
                                timeVsDistLayers->Fill(  distVtx , time) ;
@@ -1018,8 +1110,7 @@ int main(int argc, char *argv[]){
                                        continue;
                                }*/
                            
-                               if(abs(distVtx) < 50)
-                                   beta.at(partPos)->Fill(subCTMuonCombinedFreeInverseBeta.at(clusterStart));
+                               //if(abs(distVtx) < 50)
 
                                timeMedian.at(partPos).push_back(time);
                                /*if( muTrack == "muTop" && subCTMuOrigin.at(clusterStart) ==1 && hem == -1 && subtsosrhglobalphi.at(m)<0)
@@ -1031,6 +1122,7 @@ int main(int argc, char *argv[]){
                            //if(subCTinnerVZtop.at(clusterStart)< -50 || subCTinnerVZtop.at(clusterStart)>50) //distVtx
                            //
                            //
+                           
 			       if(subCTstripCharge.at(clusterStart+1) != -333)
 				   narrowTrackSharing1Data.at(partPos)->Fill((float) subCTstripCharge.at(clusterStart+1)/subCTstripCharge.at(clusterStart+2));
 			       if(subCTstripCharge.at(clusterStart+3) != -333)
@@ -1039,6 +1131,82 @@ int main(int argc, char *argv[]){
 				   narrowTrackSharing2Data.at(partPos)->Fill( (float) subCTstripCharge.at(clusterStart)/subCTstripCharge.at(clusterStart+2));
 			       if(subCTstripCharge.at(clusterStart+4) != -333)
 				   narrowTrackSharing2Data.at(partPos)->Fill( (float) subCTstripCharge.at(clusterStart+4)/subCTstripCharge.at(clusterStart+2));
+
+                                   
+                               float lowb = 0.003;
+                               float highb = subCTstripChargelocalpitch.at(clusterStart) - 0.003;
+                               //float lowb = 0;
+                               //float highb = subCTstripChargelocalpitch.at(clusterStart);
+                               float distFromMid =  fmod( abs(subCTlocalX.at(clusterStart)), subCTstripChargelocalpitch.at(clusterStart) );
+ 
+			       if(subCTstripCharge.at(clusterStart+1) != -333)
+                               {
+                                   if( distFromMid > lowb &&  distFromMid < highb )
+                                   {
+				       narrowTrackSharing1DataGoodX.at(partPos)->Fill((float) subCTstripCharge.at(clusterStart+1)/subCTstripCharge.at(clusterStart+2));
+                                   }
+                                   if( distFromMid < lowb ||  distFromMid > highb )
+                                   {
+				       narrowTrackSharing1DataBadX.at(partPos)->Fill((float) subCTstripCharge.at(clusterStart+1)/subCTstripCharge.at(clusterStart+2));
+                                   }
+                                   if(subCTstripChargeTotCharge.at(clusterStart)<150)
+				   narrowTrackSharing1DataLowCharge.at(partPos)->Fill((float) subCTstripCharge.at(clusterStart+1)/subCTstripCharge.at(clusterStart+2));
+                                   if(subCTstripChargeTotCharge.at(clusterStart)>150 &&  subCTstripChargeTotCharge.at(clusterStart)<300)
+				   narrowTrackSharing1DataMidCharge.at(partPos)->Fill((float) subCTstripCharge.at(clusterStart+1)/subCTstripCharge.at(clusterStart+2));
+                                   if(subCTstripChargeTotCharge.at(clusterStart)>300)
+				   narrowTrackSharing1DataHighCharge.at(partPos)->Fill((float) subCTstripCharge.at(clusterStart+1)/subCTstripCharge.at(clusterStart+2));
+                                }
+			       if(subCTstripCharge.at(clusterStart+3) != -333)
+                               {
+                                   if( distFromMid > lowb &&  distFromMid < highb )
+                                   {
+				       narrowTrackSharing1DataGoodX.at(partPos)->Fill( (float) subCTstripCharge.at(clusterStart+3)/subCTstripCharge.at(clusterStart+2));
+                                   }
+                                   if( distFromMid < lowb ||  distFromMid > highb )
+                                   {
+				       narrowTrackSharing1DataBadX.at(partPos)->Fill( (float) subCTstripCharge.at(clusterStart+3)/subCTstripCharge.at(clusterStart+2));
+                                   }
+                                   if(subCTstripChargeTotCharge.at(clusterStart)<150)
+				   narrowTrackSharing1DataLowCharge.at(partPos)->Fill( (float) subCTstripCharge.at(clusterStart+3)/subCTstripCharge.at(clusterStart+2));
+                                   if(subCTstripChargeTotCharge.at(clusterStart)>150 &&  subCTstripChargeTotCharge.at(clusterStart)<300)
+				   narrowTrackSharing1DataMidCharge.at(partPos)->Fill( (float) subCTstripCharge.at(clusterStart+3)/subCTstripCharge.at(clusterStart+2));
+                                   if(subCTstripChargeTotCharge.at(clusterStart)>300)
+				   narrowTrackSharing1DataHighCharge.at(partPos)->Fill( (float) subCTstripCharge.at(clusterStart+3)/subCTstripCharge.at(clusterStart+2));
+                               }
+			       if(subCTstripCharge.at(clusterStart) != -333)
+                               {
+                                   if( distFromMid > lowb &&  distFromMid < highb )
+                                   {
+				       narrowTrackSharing2DataGoodX.at(partPos)->Fill( (float) subCTstripCharge.at(clusterStart)/subCTstripCharge.at(clusterStart+2));
+                                   }
+                                   if( distFromMid < lowb ||  distFromMid > highb )
+                                   {
+				       narrowTrackSharing2DataBadX.at(partPos)->Fill( (float) subCTstripCharge.at(clusterStart)/subCTstripCharge.at(clusterStart+2));
+                                   }
+                                   if(subCTstripChargeTotCharge.at(clusterStart)<150)
+				   narrowTrackSharing2DataLowCharge.at(partPos)->Fill( (float) subCTstripCharge.at(clusterStart)/subCTstripCharge.at(clusterStart+2));
+                                   if(subCTstripChargeTotCharge.at(clusterStart)>150 &&  subCTstripChargeTotCharge.at(clusterStart)<300)
+				   narrowTrackSharing2DataMidCharge.at(partPos)->Fill( (float) subCTstripCharge.at(clusterStart)/subCTstripCharge.at(clusterStart+2));
+                                   if(subCTstripChargeTotCharge.at(clusterStart)>300)
+				   narrowTrackSharing2DataHighCharge.at(partPos)->Fill( (float) subCTstripCharge.at(clusterStart)/subCTstripCharge.at(clusterStart+2));
+			       }
+                               if(subCTstripCharge.at(clusterStart+4) != -333)
+                               {
+                                   if( distFromMid > lowb &&  distFromMid < highb )
+                                   {
+				       narrowTrackSharing2DataGoodX.at(partPos)->Fill( (float) subCTstripCharge.at(clusterStart+4)/subCTstripCharge.at(clusterStart+2));
+                                   }
+                                   if( distFromMid < lowb ||  distFromMid > highb )
+                                   {
+				       narrowTrackSharing2DataBadX.at(partPos)->Fill( (float) subCTstripCharge.at(clusterStart+4)/subCTstripCharge.at(clusterStart+2));
+                                   }
+                                   if(subCTstripChargeTotCharge.at(clusterStart)<150)
+				   narrowTrackSharing2DataLowCharge.at(partPos)->Fill( (float) subCTstripCharge.at(clusterStart+4)/subCTstripCharge.at(clusterStart+2));
+                                   if(subCTstripChargeTotCharge.at(clusterStart)>150 &&  subCTstripChargeTotCharge.at(clusterStart)<300)
+				   narrowTrackSharing2DataMidCharge.at(partPos)->Fill( (float) subCTstripCharge.at(clusterStart+4)/subCTstripCharge.at(clusterStart+2));
+                                   if(subCTstripChargeTotCharge.at(clusterStart)>300)
+				   narrowTrackSharing2DataHighCharge.at(partPos)->Fill( (float) subCTstripCharge.at(clusterStart+4)/subCTstripCharge.at(clusterStart+2));
+                               }
 
                            }
                            if(subCTinnerVZtop.at(clusterStart)> -50 && subCTinnerVZtop.at(clusterStart)<50) //distVtx
@@ -1050,7 +1218,7 @@ int main(int argc, char *argv[]){
 		               chargeEdge.at(partPos)->Fill( time , subCTstripChargeTotCharge.at(clusterStart) ) ;
                            }
                        
-                           //x-talk binned
+                           //x-talk binned, no cut on time
                                if(subCTstripCharge.at(clusterStart+1) != -333)
                                {
                                    if(time > -20 &&  time< 20)
@@ -1359,6 +1527,13 @@ int main(int argc, char *argv[]){
        widthCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ width.at(c)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
        widthCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ width.at(c)->GetName()+(string)part+(string)muTrack+ ".root").c_str());
 
+       widthAsCosPhiCan.at(c)->cd();
+       widthAsCosPhi.at(c)->GetXaxis()->SetTitle("cos(#phi)");
+       widthAsCosPhi.at(c)->GetYaxis()->SetTitle("cluster width");
+       widthAsCosPhi.at(c)->Draw("");
+       widthAsCosPhiCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ widthAsCosPhi.at(c)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
+       widthAsCosPhiCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ widthAsCosPhi.at(c)->GetName()+(string)part+(string)muTrack+ ".root").c_str());
+
        chargeCan.at(c)->cd();
        charge.at(c)->GetXaxis()->SetTitle("time");
        charge.at(c)->GetYaxis()->SetTitle("cluster charge");
@@ -1533,6 +1708,43 @@ int main(int argc, char *argv[]){
        betaVsTimeCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ betaVsTime.at(c)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
        betaVsTimeCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ betaVsTime.at(c)->GetName()+(string)part+(string)muTrack+ ".root").c_str());
 
+
+       narrowTrackSharing1DataGoodXCan.at(c)->cd();
+       narrowTrackSharing1DataGoodX.at(c)->SetTitle("");
+       narrowTrackSharing1DataGoodX.at(c)->GetXaxis()->SetTitle("#eta #pm 1");
+       narrowTrackSharing1DataGoodX.at(c)->DrawNormalized("");
+       narrowTrackSharing1DataGoodXCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ narrowTrackSharing1DataGoodX.at(c)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
+       narrowTrackSharing1DataGoodXCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ narrowTrackSharing1DataGoodX.at(c)->GetName()+(string)part+(string)muTrack+ ".root").c_str());
+
+       narrowTrackSharing1DataBadXCan.at(c)->cd();
+       narrowTrackSharing1DataBadX.at(c)->SetTitle("");
+       narrowTrackSharing1DataBadX.at(c)->GetXaxis()->SetTitle("#eta #pm 1");
+       narrowTrackSharing1DataBadX.at(c)->DrawNormalized("");
+       narrowTrackSharing1DataBadXCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ narrowTrackSharing1DataBadX.at(c)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
+       narrowTrackSharing1DataBadXCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ narrowTrackSharing1DataBadX.at(c)->GetName()+(string)part+(string)muTrack+ ".root").c_str());
+
+       
+       narrowTrackSharing1DataLowChargeCan.at(c)->cd();
+       narrowTrackSharing1DataLowCharge.at(c)->SetTitle("");
+       narrowTrackSharing1DataLowCharge.at(c)->GetXaxis()->SetTitle("#eta #pm 1");
+       narrowTrackSharing1DataLowCharge.at(c)->Draw("");
+       narrowTrackSharing1DataLowChargeCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ narrowTrackSharing1DataLowCharge.at(c)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
+       narrowTrackSharing1DataLowChargeCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ narrowTrackSharing1DataLowCharge.at(c)->GetName()+(string)part+(string)muTrack+ ".root").c_str());
+
+       narrowTrackSharing1DataMidChargeCan.at(c)->cd();
+       narrowTrackSharing1DataMidCharge.at(c)->SetTitle("");
+       narrowTrackSharing1DataMidCharge.at(c)->GetXaxis()->SetTitle("#eta #pm 1");
+       narrowTrackSharing1DataMidCharge.at(c)->Draw("");
+       narrowTrackSharing1DataMidChargeCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ narrowTrackSharing1DataMidCharge.at(c)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
+       narrowTrackSharing1DataMidChargeCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ narrowTrackSharing1DataMidCharge.at(c)->GetName()+(string)part+(string)muTrack+ ".root").c_str());
+
+       
+       narrowTrackSharing1DataHighChargeCan.at(c)->cd();
+       narrowTrackSharing1DataHighCharge.at(c)->SetTitle("");
+       narrowTrackSharing1DataHighCharge.at(c)->GetXaxis()->SetTitle("#eta #pm 1");
+       narrowTrackSharing1DataHighCharge.at(c)->Draw("");
+       narrowTrackSharing1DataHighChargeCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ narrowTrackSharing1DataHighCharge.at(c)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
+       narrowTrackSharing1DataHighChargeCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ narrowTrackSharing1DataHighCharge.at(c)->GetName()+(string)part+(string)muTrack+ ".root").c_str());
        
        for(uint32_t j=0; j<40; j++)
        {
