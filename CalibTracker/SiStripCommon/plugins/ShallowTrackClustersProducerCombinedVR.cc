@@ -69,6 +69,9 @@
 #include "RecoLocalMuon/DTSegment/src/DTSegmentCand.h"
 #include "Geometry/Records/interface/DTRecoGeometryRcd.h"
 
+#include "DataFormats/TrackReco/interface/Track.h"
+#include "DataFormats/MuonReco/interface/Muon.h"
+
 #include "CalibTracker/Records/interface/SiStripDependentRecords.h"
 #include <map>
 #include <iostream>
@@ -267,6 +270,7 @@ ShallowTrackClustersProducerCombinedVR::ShallowTrackClustersProducerCombinedVR(c
 
   produces <std::vector<float> >        ( "PU"       );
   produces <std::vector<unsigned int> > ( "bx"       );
+  produces <std::vector<unsigned int> > ( "run"       );
 
 
   produces <std::vector<float> >         ( "muonsDTMuontrackDirection"        );
@@ -313,6 +317,9 @@ ShallowTrackClustersProducerCombinedVR::ShallowTrackClustersProducerCombinedVR(c
   produces <std::vector<float> >              ( "CTglobalX"       );
   produces <std::vector<float> >              ( "CTglobalY"       );
   produces <std::vector<float> >              ( "CTglobalZ"       );
+  produces <std::vector<float> >              ( "CTlocalX"       );
+  produces <std::vector<float> >              ( "CTlocalY"       );
+  produces <std::vector<float> >              ( "CTlocalZ"       );
   produces <std::vector<float> >              ( "CTtof"       );
   produces <std::vector<float> >              ( "CTtofImproved"       );
   produces <std::vector<float> >              ( "CTmuonsDTMuontrackLastWheel"       );
@@ -323,6 +330,8 @@ ShallowTrackClustersProducerCombinedVR::ShallowTrackClustersProducerCombinedVR(c
 
 
   produces <std::vector<float> >              ( "muOrigin"       );
+  produces <std::vector<float> >              ( "muTimeDifference"       );
+  produces <std::vector<float> >              ( "nrOfMus"       );
 
 /*  produces <bool>              ("passHLTL1SingleMu3v1" ); 
   produces <bool>              ( "passHLTL1SingleMu5v1" ); 
@@ -511,6 +520,7 @@ produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   auto       PU      = std::make_unique<std::vector<float>>();
   auto bx            = std::make_unique<std::vector<unsigned int>>();
+  auto run            = std::make_unique<std::vector<unsigned int>>();
   auto nroftracks            = std::make_unique<unsigned int>();
   auto nrofmuons            = std::make_unique<unsigned int>();
   auto nrofevents            = std::make_unique<unsigned int>();
@@ -543,6 +553,9 @@ produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto                 CTglobalX =  std::make_unique<std::vector<float>>();
   auto                 CTglobalY =  std::make_unique<std::vector<float>>();
   auto                 CTglobalZ =  std::make_unique<std::vector<float>>();
+  auto                 CTlocalX =  std::make_unique<std::vector<float>>();
+  auto                 CTlocalY =  std::make_unique<std::vector<float>>();
+  auto                 CTlocalZ =  std::make_unique<std::vector<float>>();
   auto                 CTtof =  std::make_unique<std::vector<float>>();
   auto                 CTtofImproved =  std::make_unique<std::vector<float>>();
   auto                 CTouterXtop =  std::make_unique<std::vector<float>>();
@@ -557,6 +570,8 @@ produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto                 tzeroMinTimeOutIn=  std::make_unique<std::vector<float>>();
 
   auto                 muOrigin =  std::make_unique<std::vector<float>>();
+  auto                 muTimeDifference =  std::make_unique<std::vector<float>>();
+  auto                 nrOfMus=  std::make_unique<std::vector<float>>();
 
 /*  auto passHLTL1SingleMu3v1 = std::make_unique<bool>(); 
   auto passHLTL1SingleMu5v1 =  std::make_unique<bool>(); 
@@ -630,6 +645,9 @@ produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
           }
       }*/
 
+  if(iEvent.id().run() == 303357)
+  {
+
 
   float PU_=0;
   PU_=vtx->size();
@@ -637,7 +655,7 @@ produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   *nrofevents = 1;
   PU->push_back(PU_);
   bx->push_back(iEvent.bunchCrossing());
-
+  run->push_back(iEvent.id().run()   );
   *nroftracks = 0;
   *nrofmuons = 0;
 
@@ -658,25 +676,97 @@ cout << "before good track " << endl;
     if(!isGoodTrack)
         continue;
 
-
-  uint32_t trackerTrack = 0;
+  uint32_t globalCounter = 0;
+  vector<uint32_t> trackerTrack;
+  bool isB =false;
+  bool isT =false;
   bool muFound = false;
+  vector<int> muType;
+  vector<float> timeOfMu;       
+  vector <float> vzOfMu;       
   for (uint32_t mmu=0; mmu<MuCollection->size(); mmu++)
-  {  
-      if(MuCollection->at(mmu).isTrackerMuon())
+  {
+      isB = false; 
+      isT = false; 
+
+      const reco::TrackRef muT = MuCollection->at(mmu).outerTrack();
+      if(muT.isNull())
+          continue;
+      float timeZero = MuCollection->at(mmu).t0();
+      reco::MuonRef muTR(MuCollection, mmu);
+      if(muTR.isNull())
+          continue;
+      reco::MuonTimeExtra bestTime = timeMapDT[muTR];
+      cout << "muon " << mmu << " time in out " <<  bestTime.timeAtIpInOut() << " vz  " << muT->vz() << " t0 " << timeZero << endl;
+      
+      trackingRecHit_iterator  muHit2= muT->recHitsBegin();
+      for(  ; muHit2 !=  muT->recHitsEnd(); muHit2++)
+      {
+             if( static_cast<int>((*muHit2)->geographicalId().det()) ==2  && static_cast<int>((*muHit2)->geographicalId().subdetId()) == static_cast<int>(MuonSubdetId::DT))
+             {
+                 DTChamberId DTchamber2((*muHit2)->geographicalId());
+                 if(  (DTchamber2.sector()>6 && DTchamber2.sector()<13) || (DTchamber2.sector() == 14)  )
+                 {
+                     isB = true;
+                     cout << "bottom ";
+                 }
+                 if( (DTchamber2.sector()>0 && DTchamber2.sector()<7) || (DTchamber2.sector() == 13)  )
+                 {
+                     isT = true;
+                     cout << "top ";
+                 }
+             }
+       }
+       cout << endl;
+       if( isT == true && isB == false)
+           muType.push_back(1);
+       else if( isT == false && isB == true)
+           muType.push_back(2);
+       
+       timeOfMu.push_back(bestTime.timeAtIpInOut());       
+       vzOfMu.push_back(muT->vz());       
+
+         
+      //if(MuCollection->at(mmu).isTrackerMuon() && MuCollection->at(mmu).isGlobalMuon() )
+      if(MuCollection->at(mmu).isTrackerMuon() && MuCollection->at(mmu).isStandAloneMuon() )
       {
           // (*nrofmuons)++;
           //cout << "global muon" << MuCollection->at(mu).isGlobalMuon() << endl;
           muFound = true;
-          trackerTrack = mmu;
-          break;
+          trackerTrack.push_back(mmu);
+          globalCounter++; 
+          //break;
       }
   }
-      
+
+  cout << "number of global tracks " << globalCounter << endl;
+     
+
+       nrOfMus->push_back(muType.size());
+       if(muType.size()==2) 
+       {
+            if(vzOfMu.at(0) > vzOfMu.at(1)-5 && vzOfMu.at(0) < vzOfMu.at(1)+5)
+            {
+                cout << "after z cut " << endl;
+                if(muType.at(0) == 1 && muType.at(1) == 2 )
+                    muTimeDifference->push_back(timeOfMu.at(0)-timeOfMu.at(1) );
+                else if(muType.at(0) == 2 && muType.at(1) == 1 )
+                    muTimeDifference->push_back(timeOfMu.at(1)-timeOfMu.at(0) );
+            }
+       }
+
+       muType.clear();
+       timeOfMu.clear();       
+       vzOfMu.clear();       
+ 
+ 
       if(!muFound) //no tacker muon
           continue;
 
-      reco::MuonRef muonR(MuCollection, trackerTrack); //@MJ@ TODO - for now first track but I must deal with that!!
+//muon loop
+  for(uint32_t l=0; l<trackerTrack.size(); l++ )
+  {
+      reco::MuonRef muonR(MuCollection, trackerTrack.at(l)); //@MJ@ TODO - for now first track but I must deal with that!!
       reco::MuonTimeExtra timec = timeMapCmb[muonR];
       reco::MuonTimeExtra timedt = timeMapDT[muonR];
       reco::MuonTimeExtra timecsc = timeMapCSC[muonR];
@@ -709,8 +799,8 @@ cout << "before good track " << endl;
      uint32_t nrOfMuHits = 0;
      std::vector<uint32_t> sectorsOfDT;
 
-     reco::TrackRef muTrack = muonR->globalTrack();
-     reco::TrackRef muTrackSA = muonR->standAloneMuon();
+     //reco::TrackRef muTrack = muonR->globalTrack();
+     reco::TrackRef muTrack = muonR->standAloneMuon();
      if(!muTrack.isNull())
      {
 
@@ -777,11 +867,11 @@ cout << "before good track " << endl;
              //if(topTrack)
              if(true)
              {
-              cout << "nr of hits standalone " << muTrackSA->recHitsSize() << " nr of time measurements in DT " << timeMapDT[muonR].timeAtIpInOutHIT().size() << " nr of time measurements combined " << timeMapCmb[muonR].timeAtIpInOutHIT().size() << endl;
-              cout << "nr of hits combined " << muonR->combinedMuon()->recHitsSize() << " nr of time measurements in DT " << timeMapDT[muonR].timeAtIpInOutHIT().size() << " nr of time measurements combined " << timeMapCmb[muonR].timeAtIpInOutHIT().size() << endl;
-              cout << "nr of hits global  " << muTrack->recHitsSize() << " nr of time measurements in DT " << timeMapDT[muonR].timeAtIpInOutHIT().size() << " nr of time measurements combined " << timeMapCmb[muonR].timeAtIpInOutHIT().size() << endl;
-             if(muTrackSA->recHitsSize() != timeMapDT[muonR].timeAtIpInOutHIT().size())
-	          cout << "hit and time sizes not the same!! " << endl;
+              //cout << "nr of hits standalone " << muTrackSA->recHitsSize() << " nr of time measurements in DT " << timeMapDT[muonR].timeAtIpInOutHIT().size() << " nr of time measurements combined " << timeMapCmb[muonR].timeAtIpInOutHIT().size() << endl;
+              //cout << "nr of hits combined " << muonR->combinedMuon()->recHitsSize() << " nr of time measurements in DT " << timeMapDT[muonR].timeAtIpInOutHIT().size() << " nr of time measurements combined " << timeMapCmb[muonR].timeAtIpInOutHIT().size() << endl;
+              //cout << "nr of hits global  " << muTrack->recHitsSize() << " nr of time measurements in DT " << timeMapDT[muonR].timeAtIpInOutHIT().size() << " nr of time measurements combined " << timeMapCmb[muonR].timeAtIpInOutHIT().size() << endl;
+             //if(muTrackSA->recHitsSize() != timeMapDT[muonR].timeAtIpInOutHIT().size())
+	     //     cout << "hit and time sizes not the same!! " << endl;
 
 			 muonsDTMuontrackInOutTop->push_back(timeMapDT[muonR].timeAtIpInOut()); 
 			 muonsDTMuontrackOutInTop->push_back(timeMapDT[muonR].timeAtIpOutIn()) ;
@@ -1074,8 +1164,8 @@ cout << " after good track " << endl;
               CTstripChargeTotCharge->push_back(info.charge());
               CTstripChargeTotWidth->push_back(cluster_ptr->amplitudes().size());
 
-              CTCmbtimeVtxr->push_back(timec.timeAtIpOutIn());
-              CTCmbtimeVtxrErr->push_back(timec.timeAtIpOutInErr());
+              CTCmbtimeVtxr->push_back(timedt.timeAtIpOutIn());
+              CTCmbtimeVtxrErr->push_back(timedt.timeAtIpOutInErr());
               CTDttimeVtxr->push_back(timedt.timeAtIpOutIn());
               CTDttimeVtxrErr->push_back(timedt.timeAtIpOutInErr());
               //CTCsctimeVtxr->push_back(timecsc.timeAtIpOutIn());
@@ -1083,15 +1173,15 @@ cout << " after good track " << endl;
               CTCsctimeVtxr->push_back(timecsc.timeAtIpOutIn() );
               CTCsctimeVtxrErr->push_back(timecsc.timeAtIpOutInErr()  );
 
-              CTCmbtimeVtx->push_back(timec.timeAtIpInOut());
-              CTCmbtimeVtxErr->push_back(timec.timeAtIpInOutErr());
+              CTCmbtimeVtx->push_back(timedt.timeAtIpInOut());
+              CTCmbtimeVtxErr->push_back(timedt.timeAtIpInOutErr());
               CTDttimeVtx->push_back(timedt.timeAtIpInOut());
               CTDttimeVtxErr->push_back(timedt.timeAtIpInOutErr());
               CTCsctimeVtx->push_back(timecsc.timeAtIpInOut() );
               CTCsctimeVtxErr->push_back(timecsc.timeAtIpInOutErr() );
 
-              CTCombinedTimeOutInInOutDiff->push_back(timec.timeAtIpOutIn() - timec.timeAtIpInOut() );
-              CTCombinedTimeOutInInOutDiffErr->push_back(timec.timeAtIpOutInErr() - timec.timeAtIpInOutErr() );
+              CTCombinedTimeOutInInOutDiff->push_back(timedt.timeAtIpOutIn() - timedt.timeAtIpInOut() );
+              CTCombinedTimeOutInInOutDiffErr->push_back(timedt.timeAtIpOutInErr() - timedt.timeAtIpInOutErr() );
 
               CTMuontrackDirection->push_back(trackDirection);
               CTDTMuontrackDirection->push_back(DTtrackDirection);
@@ -1104,8 +1194,8 @@ cout << " after good track " << endl;
               CTnrOfMuHits->push_back(nrOfMuHits);
               CTsectorsOfDT->push_back(sectorsOfDT.size());
 
-              CTMuonCombinedInverseBeta->push_back(timec.inverseBeta());
-              CTMuonCombinedFreeInverseBeta->push_back(timec.freeInverseBeta());
+              CTMuonCombinedInverseBeta->push_back(timedt.inverseBeta());
+              CTMuonCombinedFreeInverseBeta->push_back(timedt.freeInverseBeta());
               CTDTFreeInverseBeta->push_back(timedt.freeInverseBeta());
               //CTMuontrackPhi->push_back((*glbTrack).phi());
 
@@ -1141,6 +1231,11 @@ cout << " after good track " << endl;
               CTglobalY->push_back( tsos.globalPosition().y());
               CTglobalZ->push_back( tsos.globalPosition().z());
 
+
+              CTlocalX->push_back( (theStripDet->toLocal(tsos.globalPosition())).x()  );
+              CTlocalY->push_back( (theStripDet->toLocal(tsos.globalPosition())).y() );
+              CTlocalZ->push_back( (theStripDet->toLocal(tsos.globalPosition())).z() );
+
               float xterm =  TMath::Power(tsos.globalPosition().x() - track->vx(), 2);
               float yterm =  TMath::Power(tsos.globalPosition().y() - track->vy(), 2);
               float zterm =  TMath::Power(tsos.globalPosition().z() - track->vz(), 2);
@@ -1159,20 +1254,20 @@ cout << " after good track " << endl;
 
 		if(theStripDet->toGlobal(hit->localPosition()).phi() > 0)
 		{
-		    CTCombinedTimeTop->push_back(timec.timeAtIpOutIn());
+		    CTCombinedTimeTop->push_back(timedt.timeAtIpOutIn());
 		}
 		else
 		{
-		    CTCombinedTimeBottom->push_back(timec.timeAtIpOutIn());
+		    CTCombinedTimeBottom->push_back(timedt.timeAtIpOutIn());
 		}
 
 		if( trackDirection == 1)
 		{
-		    CTCombinedTimeForInOut->push_back(timec.timeAtIpInOut());
+		    CTCombinedTimeForInOut->push_back(timedt.timeAtIpInOut());
 		}
 		else if( trackDirection == -1 )
 		{
-		    CTCombinedTimeForOutIn->push_back(timec.timeAtIpOutIn());
+		    CTCombinedTimeForOutIn->push_back(timedt.timeAtIpOutIn());
 		}
 		else
 		{
@@ -1253,6 +1348,9 @@ cout << " after good track " << endl;
 
 
    //beforePut:
+}
+
+}
 
   iEvent.put(std::move(clusterIdx        ), Suffix + "clusterIdx"  );
   iEvent.put(std::move(onTrkClusterIdx   ), Suffix + "onTrkClusterIdx"  );
@@ -1373,6 +1471,7 @@ cout << " after good track " << endl;
   iEvent.put(std::move(CTstripChargeTotWidth),       "CTstripChargeTotWidth"        );
   iEvent.put(std::move(PU),       "PU"        );
   iEvent.put(std::move(bx),       "bx"        );
+  iEvent.put(std::move(run),       "run"        );
   iEvent.put(std::move(nroftracks),       "nroftracks"        );
   iEvent.put(std::move(nrofmuons),       "nrofmuons"        );
   iEvent.put(std::move(nrofevents),       "nrofevents"        );
@@ -1456,12 +1555,17 @@ cout << " after good track " << endl;
   iEvent.put(std::move(CTglobalZ),       "CTglobalZ"        );
   iEvent.put(std::move(CTtof),       "CTtof"        );
   iEvent.put(std::move(CTtofImproved),       "CTtofImproved"        );
+  iEvent.put(std::move(CTlocalX),       "CTlocalX"        );
+  iEvent.put(std::move(CTlocalY),       "CTlocalY"        );
+  iEvent.put(std::move(CTlocalZ),       "CTlocalZ"        );
 
   //just for tests
   iEvent.put(std::move(tzeroMinTimeInOut),       "tzeroMinTimeInOut"        );
   iEvent.put(std::move(tzeroMinTimeOutIn),       "tzeroMinTimeOutIn"        );
 
   iEvent.put(std::move(muOrigin),       "muOrigin"        );
+  iEvent.put(std::move(muTimeDifference),       "muTimeDifference"        );
+  iEvent.put(std::move(nrOfMus),       "nrOfMus"        );
 
   /*iEvent.put(std::move(passHLTL1SingleMu3v1), "passHLTL1SingleMu3v1" ); 
   iEvent.put(std::move(passHLTL1SingleMu5v1), "passHLTL1SingleMu5v1" ); 
