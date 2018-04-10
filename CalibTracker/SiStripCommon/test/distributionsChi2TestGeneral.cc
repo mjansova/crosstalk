@@ -3,7 +3,7 @@
 //./distributionsChi2TestGeneral /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_230_0.044999999999999998_0.001step3.rootanalyzer.root /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017Update_230_0.044999999999999998_0.001step3.rootanalyzer.root 230 0.045 0.001 TOB 1 4 yes CTparameters 
 
 
-//./distributionsChi2TestGeneral /opt/sbg/data/data6/cms/mjansova/CMSSW_10_0_2/src/CalibTracker/SiStripCommon/test/test_shallowTrackAndCluster_ZBData.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_230_0.044999999999999998_0.001step3.rootanalyzer.root  230 0.045 0.001 TOB 1 4 yes CTparameters 
+//./distributionsChi2TestGeneral /opt/sbg/data/data6/cms/mjansova/CMSSW_10_0_2/src/CalibTracker/SiStripCommon/test/test_shallowTrackAndCluster_ZBData.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_230_0.044999999999999998_0.001step3.rootanalyzer.root  230 0.045 0.001 TOB 1 4 mono CTparameters 
 
 #include <fstream>
 #include <iostream>
@@ -51,8 +51,8 @@ using namespace std;
 
 int main(int argc, char *argv[]){
 
- gStyle->SetOptStat(0);
- gROOT->ForceStyle();
+ //gStyle->SetOptStat(0);
+ //gROOT->ForceStyle();
  TH1::SetDefaultSumw2();
     if(argc != 11)
     {
@@ -72,7 +72,7 @@ int main(int argc, char *argv[]){
     TString subDet = argv[6];
     TString slayerCutDown = argv[7];
     TString slayerCutUp = argv[8];
-    TString norm = argv[9];
+    string norm = argv[9];
     TString dir = argv[10];
 
     float ePerADC = sePerADC.Atof();
@@ -125,6 +125,26 @@ int main(int argc, char *argv[]){
        vector<float>* clusterwidth2 = 0;
        vector<float>* clusterlayerwheel = 0;
        vector<float>* clusterlayerwheel2 = 0;
+       vector<float>* clusterstereo = 0;
+       vector<float>* clusterupper = 0;
+       vector<float>* clusterstereo2 = 0;
+       vector<float>* clusterside = 0;
+       vector<float>* clusterside2 = 0;
+       vector<float>* clusterlocalMomZ = 0;
+       vector<float>* clusterlocalMomZ2 = 0;
+       vector<float>* tsosglobalphi = 0;
+       vector<float>* tsosglobalphi2 = 0;
+       vector<float>* tsosBdotZ = 0;
+       vector<float>* tsosBdotZ2 = 0;
+       vector<float>* tsosBdotY = 0;
+       vector<float>* tsosBdotY2 = 0;
+       vector<float>* tsoslocalpitch = 0;
+       vector<float>* tsoslocalpitch2 = 0;
+
+       vector<float>* tsoslocalx = 0;
+       vector<float>* tsoslocaly = 0;
+       vector<float>* tsosglobalz = 0;
+       vector<unsigned int>* clusterdetid = 0;
 
        vector<float> subpartition;
        vector<float> subpartition2;
@@ -136,18 +156,60 @@ int main(int argc, char *argv[]){
        vector<float> subclusterwidth2;
        vector<float> subclusterlayerwheel;
        vector<float> subclusterlayerwheel2;
+       vector<float> subclusterstereo;
+       vector<float> subclusterupper;
+       vector<float> subclusterstereo2;
+       vector<float> subclusterside;
+       vector<float> subclusterside2;
+       vector<float> subclusterlocalMomZ;
+       vector<float> subclusterlocalMomZ2;
+       vector<float> subtsosglobalphi;
+       vector<float> subtsosglobalphi2;
+       vector<float> subtsosBdotZ;
+       vector<float> subtsosBdotZ2;
+       vector<float> subtsosBdotY;
+       vector<float> subtsosBdotY2;
+       vector<float> subtsoslocalpitch;
+       vector<float> subtsoslocalpitch2;
+
+       vector<float> subtsoslocalx;
+       vector<float> subtsoslocaly;
+       vector<float> subtsosglobalz;
+       vector<unsigned int> subclusterdetid;
 
        t1->SetBranchAddress("clustersubdetid",  &partition );
        t1->SetBranchAddress("clustercharge",  &clustercharge );
        t1->SetBranchAddress("clusterchargeRescaled",  &clusterchargeRescaled );
        t1->SetBranchAddress("clusterwidth",  &clusterwidth );
        t1->SetBranchAddress("clusterlayerwheel",  &clusterlayerwheel );
+       t1->SetBranchAddress("clusterstereo",  &clusterstereo );
+       t1->SetBranchAddress("clusterupper",  &clusterupper );
+       t1->SetBranchAddress("clusterside",  &clusterside );
+       t1->SetBranchAddress("clusterlocalMomZ",  &clusterlocalMomZ );
+       t1->SetBranchAddress("tsosglobalphi",  &tsosglobalphi );
+       t1->SetBranchAddress("tsosBdotZ",  &tsosBdotZ );
+       t1->SetBranchAddress("tsosBdotY",  &tsosBdotY );
+       t1->SetBranchAddress("tsoslocalpitch",  &tsoslocalpitch );
+
+
+       t1->SetBranchAddress("tsoslocalx",  &tsoslocalx );
+       t1->SetBranchAddress("tsoslocaly",  &tsoslocaly );
+       t1->SetBranchAddress("tsosglobalz",  &tsosglobalz );
+       t1->SetBranchAddress("clusterdetid",  &clusterdetid );
+
 
        t2->SetBranchAddress("clustersubdetid",  &partition2 );
        t2->SetBranchAddress("clustercharge",  &clustercharge2 );
        t2->SetBranchAddress("clusterchargeRescaled",  &clusterchargeRescaled2 );
        t2->SetBranchAddress("clusterwidth",  &clusterwidth2 );
        t2->SetBranchAddress("clusterlayerwheel",  &clusterlayerwheel2 );
+       t2->SetBranchAddress("clusterstereo",  &clusterstereo2 );
+       t2->SetBranchAddress("clusterside",  &clusterside2 );
+       t2->SetBranchAddress("clusterlocalMomZ",  &clusterlocalMomZ2 );
+       t2->SetBranchAddress("tsosglobalphi",  &tsosglobalphi2 );
+       t2->SetBranchAddress("tsosBdotZ",  &tsosBdotZ2 );
+       t2->SetBranchAddress("tsosBdotY",  &tsosBdotY2 );
+       t2->SetBranchAddress("tsoslocalpitch",  &tsoslocalpitch2 );
 
    //data always first
     
@@ -160,6 +222,8 @@ int main(int argc, char *argv[]){
    cout << "entries " << nentries << "enstries 2" << nentriesT2 << endl;
 
    cout << "in here b" << endl;
+   unsigned int selMod = 0;
+   uint32_t fillNr = 0;
    ///fill variables from tree 1
    for (Int_t e=0; e<nentries; e++) 
    {
@@ -176,10 +240,26 @@ int main(int argc, char *argv[]){
                    subclusterchargeRescaled.push_back(clusterchargeRescaled->at(k));
                    subclusterwidth.push_back(clusterwidth->at(k));
                    subclusterlayerwheel.push_back(clusterlayerwheel->at(k));
+                   subclusterstereo.push_back(clusterstereo->at(k));
+                   subclusterupper.push_back(clusterupper->at(k));
+                   subclusterside.push_back(clusterside->at(k));
+                   subclusterlocalMomZ.push_back(clusterlocalMomZ->at(k));
+                   subtsosglobalphi.push_back(tsosglobalphi->at(k));
+                   subtsosBdotZ.push_back(tsosBdotZ->at(k));
+                   subtsosBdotY.push_back(tsosBdotY->at(k));
+                   subtsoslocalpitch.push_back(tsoslocalpitch->at(k));
+
+                   subtsoslocalx.push_back(tsoslocalx->at(k));
+                   subtsoslocaly.push_back(tsoslocaly->at(k));
+                   subtsosglobalz.push_back(tsosglobalz->at(k));
+                   subclusterdetid.push_back(clusterdetid->at(k));
+
                }
            }
 
    }
+
+   cout << "selected module " << selMod << endl;
 
    //fill variables from tree 2
    //for (Int_t e=0; e<58; e++) //test_shallowTrackClusterRunHMedPU.root  test_shallowTrackCluster900MC.root
@@ -199,27 +279,93 @@ int main(int argc, char *argv[]){
                    subclusterchargeRescaled2.push_back(clusterchargeRescaled2->at(k));
                    subclusterwidth2.push_back(clusterwidth2->at(k));
                    subclusterlayerwheel2.push_back(clusterlayerwheel2->at(k));
+                   subclusterstereo2.push_back(clusterstereo2->at(k));
+                   subclusterside2.push_back(clusterside2->at(k));
+                   subclusterlocalMomZ2.push_back(clusterlocalMomZ2->at(k));
+                   subtsosglobalphi2.push_back(tsosglobalphi2->at(k));
+                   subtsosBdotZ2.push_back(tsosBdotZ2->at(k));
+                   subtsosBdotY2.push_back(tsosBdotY2->at(k));
+                   subtsoslocalpitch2.push_back(tsoslocalpitch2->at(k));
                }
            }
    }
 
 
 
-       TH1F* chargeData = new TH1F("chargeForAllWidths", "chargeForAllWidths" , 50, 100, 500 );
-       TH1F* chargeMC = new TH1F("chargeForAllWidthsMC", "chargeForAllWidthsMC" , 50, 100, 500 );
-       TH1F* widthData = new TH1F("widthAllTo10Data", "widthAllTo10Data" , 10, 0, 10  );
-       TH1F* widthMC = new TH1F("widthAllTo10MC", "widthAllTo10MC" , 10, 0, 10 );
-       TH1F* chargeRescaledData = new TH1F("chargeForAllWidthsRescaled", "chargeForAllWidthsRescaled" , 100, 0, 10000 );
-       TH1F* chargeRescaledMC = new TH1F("chargeForAllWidthsRescaledMC", "chargeForAllWidthsRescaledMC" , 100, 0, 10000 );
-   
+       TH1F* chargeData = new TH1F("chargeForAllWidths", "chargeForAllWidths" , 30, 100, 500 );
+       TH1F* chargeMC = new TH1F("chargeForAllWidthsMC", "chargeForAllWidthsMC" , 30, 100, 500 );
+       TH1F* widthData = new TH1F("widthAllTo10Data", "widthAllTo10Data" , 6, 1, 7  );
+       TH1F* widthMC = new TH1F("widthAllTo10MC", "widthAllTo10MC" ,6, 1, 7 );
+       TH1F* chargeRescaledData = new TH1F("chargeForAllWidthsRescaled", "chargeForAllWidthsRescaled" , 30, 2000, 6000 );
+       TH1F* chargeRescaledMC = new TH1F("chargeForAllWidthsRescaledMC", "chargeForAllWidthsRescaledMC" , 30, 2000, 6000 );
+       TH1F* clusterlocalMomZData = new TH1F("clusterlocalMomZ", "clusterlocalMomZ" , 60, -30, 30 );
+       TH1F* clusterlocalMomZMC = new TH1F("clusterlocalMomZMC", "clusterlocalMomZMC" , 60, -30, 30 );
+       TH1F* clusterstereoData = new TH1F("clusterstereo", "clusterstereo" , 2, 0, 2 );
+       TH1F* clusterstereoMC = new TH1F("clusterstereoMC", "clusterstereoMC" , 2, 0, 2 );
+       TH1F* clustersideData = new TH1F("clusterside", "clusterside" , 4, -2, 2 );
+       TH1F* clustersideMC = new TH1F("clustersideMC", "clustersideMC" , 4, -2, 2 );
+       TH1F* tsosglobalphiData = new TH1F("tsosglobalphi", "tsosglobalphi" , 100, -3.5, 3.5 );
+       TH1F* tsosglobalphiMC = new TH1F("tsosglobalphiMC", "tsosglobalphiMC" , 100, -3.5, 3.5 );
+       TH1F* tsosBdotZData = new TH1F("tsosBdtoZ", "tsosBdtoZ" , 100, -5, 5 );
+       TH1F* tsosBdotZMC = new TH1F("tsosBdtoZMC", "tsosBdtoZMC" , 100, -5, 5 );
+       TH1F* tsosBdotYData = new TH1F("tsosBdtoY", "tsosBdtoY" , 100, -5, 5 );
+       TH1F* tsosBdotYMC = new TH1F("tsosBdtoYMC", "tsosBdtoYMC" , 100, -5, 5 );
+       TH1F* tsoslocalpitchData = new TH1F("tsoslocalpitch", "tsoslocalpitch" , 1000, 0.006, 0.03 );
+       TH1F* tsoslocalpitchMC = new TH1F("tsoslocalpitchMC", "tsoslocalpitchMC" , 1000, 0.006, 0.03 );
+  
+
+       TH2F* localxAsGlobalzData = new TH2F("localxAsGlobalzData", "localxAsGlobalzData" , 6000, -300, 300, 1200, -6,6 );
+       TProfile* globalzAsLocalXData = new TProfile("globalzAsLocalXData", "globalzAsLocalXData" , 20, -6,6 );
+       TH1F*  globZData = new TH1F("globZData", "globZData" , 1200, -6,6 );
+       TH1F* clusterupperData = new TH1F("clusterupper", "clusterupper" , 4, -2, 2 );
+
+ 
        cout << "in here 2"  << endl;
        for(uint32_t m = 0; m<subclusterwidth.size(); m++)
        {
            if(subclusterlayerwheel.at(m) >= layerCutDown && subclusterlayerwheel.at(m) <= layerCutUp)
            {
+
+               if(norm.find("mono")!=std::string::npos && subclusterstereo.at(m) ==  1)
+                   continue;
+               if(norm.find("stereo")!=std::string::npos && subclusterstereo.at(m) ==  0)
+                   continue;
+               /*if(subtsosglobalphi.at(m)<0)
+                   continue;
+               if(subclusterside.at(m)<0)
+                   continue;
+               //if(subclusterstereo.at(m) ==  1)
+               //    continue;*/
                chargeData->Fill(subclustercharge.at(m));
                chargeRescaledData->Fill(subclusterchargeRescaled.at(m));
                widthData->Fill(subclusterwidth.at(m));
+               clusterlocalMomZData->Fill(subclusterlocalMomZ.at(m));
+               clustersideData->Fill(subclusterside.at(m));
+               clusterstereoData->Fill(subclusterstereo.at(m));
+               clusterupperData->Fill(subclusterupper.at(m));
+               tsosglobalphiData->Fill(subtsosglobalphi.at(m));
+               tsosBdotZData->Fill(subtsosBdotZ.at(m));
+               tsosBdotYData->Fill(subtsosBdotY.at(m));
+               tsoslocalpitchData->Fill(subtsoslocalpitch.at(m));
+               if(fillNr == 0)
+                    selMod = subclusterdetid.at(m);  
+                   
+
+               //if(selMod == subclusterdetid.at(m))
+               //{
+                    if( subtsoslocaly.at(m) > 3.0 && subtsoslocaly.at(m) < 3.1)
+                    {
+                       if( subtsosglobalz.at(m) > 80.0 && subtsosglobalz.at(m) < 90.0)
+                       {
+                       localxAsGlobalzData->Fill( subtsosglobalz.at(m), subtsoslocalx.at(m) );
+                       globalzAsLocalXData ->Fill( subtsoslocalx.at(m), subtsosglobalz.at(m) );
+                       uint32_t lx = globZData->FindBin(subtsoslocalx.at(m) );
+                       globZData->SetBinContent( lx, subtsosglobalz.at(m) );
+                       }
+                       //cout << "bin " << lx << " content " << subtsosglobalz.at(m) << endl;
+                    }
+               //}
+               fillNr++;
            }
          
        }
@@ -227,15 +373,33 @@ int main(int argc, char *argv[]){
     cout << "in here 3"  << endl;
        for(uint32_t m = 0; m<subclusterwidth2.size(); m++)
        {
-           if(subclusterlayerwheel2.at(m) >=layerCutDown &&  subclusterlayerwheel2.at(m)<= layerCutUp)
+           if(subclusterlayerwheel2.at(m) >=layerCutDown &&  subclusterlayerwheel2.at(m)<= layerCutUp )
            {
+               if(norm.find("mono")!=std::string::npos && subclusterstereo2.at(m) ==  1)
+                   continue;
+               if(norm.find("stereo")!=std::string::npos && subclusterstereo2.at(m) ==  0)
+                   continue;
+               //if(subclusterstereo2.at(m) ==  0)
+               //    continue;
+        /*       if(subtsosglobalphi2.at(m)<0)
+                      continue;
+               if(subclusterside2.at(m)<0)
+                   continue;*/
                chargeMC->Fill(subclustercharge2.at(m));
                chargeRescaledMC->Fill(subclusterchargeRescaled2.at(m));
                widthMC->Fill(subclusterwidth2.at(m));
+               clusterlocalMomZMC->Fill(subclusterlocalMomZ2.at(m));
+               clustersideMC->Fill(subclusterside2.at(m));
+               clusterstereoMC->Fill(subclusterstereo2.at(m));
+               tsosglobalphiMC->Fill(subtsosglobalphi2.at(m));
+               tsosBdotZMC->Fill(subtsosBdotZ2.at(m));
+               tsosBdotYMC->Fill(subtsosBdotY2.at(m));
+               tsoslocalpitchMC->Fill(subtsoslocalpitch2.at(m));
            }
        }
 
 
+    cout << "in here 4"  << endl;
        
        float Ndata=  chargeData->Integral();
        float NMC=  chargeMC->Integral();
@@ -257,21 +421,27 @@ int main(int argc, char *argv[]){
     //TString slayerCutDown = argv[7];
     //TString slayerCutUp = argv[8];
 
+if(norm == "mono" || norm == "stereo")
+{
 
-       std::multimap<float,string> returnedMap = fillMap((string)subDet+"l"+(string)slayerCutDown+"to"+(string)slayerCutUp+"Width.txt" );
+       std::multimap<float,string> returnedMap = fillMap((string)subDet+"l"+(string)slayerCutDown+"to"+(string)slayerCutUp+ norm+"Width.txt" );
        returnedMap.insert ( std::pair<float,string>( widthData->Chi2Test(widthMC, "UW CHI2/NDF P") , "eToADC_"+ (string)sePerADC  + "_xtalk_"+ (string)sx1 + "_"+ (string)sx2+ "_"+ (string)sx3 ) );
-       writeMap((string)subDet+"l"+(string)slayerCutDown+"to"+(string)slayerCutUp+"Width.txt",returnedMap  );
+       writeMap((string)subDet+"l"+(string)slayerCutDown+"to"+(string)slayerCutUp+norm+"Width.txt",returnedMap  );
 
-       std::multimap<float,string> returnedMap2 = fillMap((string)subDet+"l"+(string)slayerCutDown+"to"+(string)slayerCutUp+"Charge.txt" );
+       std::multimap<float,string> returnedMap2 = fillMap((string)subDet+"l"+(string)slayerCutDown+"to"+(string)slayerCutUp+norm+"Charge.txt" );
        returnedMap2.insert ( std::pair<float,string>( chargeData->Chi2Test(chargeMC, "UW CHI2/NDF P") , "eToADC_"+ (string)sePerADC  + "_xtalk_"+ (string)sx1 + "_"+ (string)sx2+ "_"+ (string)sx3 ) );
-       writeMap((string)subDet+"l"+(string)slayerCutDown+"to"+(string)slayerCutUp+"Charge.txt",returnedMap2  );
+       writeMap((string)subDet+"l"+(string)slayerCutDown+"to"+(string)slayerCutUp+norm+"Charge.txt",returnedMap2  );
        
-       std::multimap<float,string> returnedMap3 = fillMap((string)subDet+"l"+(string)slayerCutDown+"to"+(string)slayerCutUp+"ChargeRescaled.txt" );
+       std::multimap<float,string> returnedMap3 = fillMap((string)subDet+"l"+(string)slayerCutDown+"to"+(string)slayerCutUp+norm+"ChargeRescaled.txt" );
        returnedMap3.insert ( std::pair<float,string>( chargeRescaledData->Chi2Test(chargeRescaledMC, "UW CHI2/NDF P") , "eToADC_"+ (string)sePerADC  + "_xtalk_"+ (string)sx1 + "_"+ (string)sx2+ "_"+ (string)sx3 ) );
-       writeMap((string)subDet+"l"+(string)slayerCutDown+"to"+(string)slayerCutUp+"ChargeRescaled.txt",returnedMap3  );
-       
+       writeMap((string)subDet+"l"+(string)slayerCutDown+"to"+(string)slayerCutUp+norm+"ChargeRescaled.txt",returnedMap3  );
+   
+     cout << "finished " << endl;    
+     returnedMap.clear();
+     returnedMap2.clear();
+     returnedMap3.clear();
        //fill the map
-
+}
 
 /*       TFile *f_chi2ch = new TFile (((string)dir+"chi2charge.root").c_str(), "UPDATE");
        TH3F* chi23Dch = NULL;
@@ -304,7 +474,9 @@ int main(int argc, char *argv[]){
        f_Kolmogorov->Close();
 
 */
-
+    cout << "in here 5"  << endl;
+if(norm == "monop" || norm == "stereop")
+{
 //////////////////////filling
        chargeData->SetMarkerStyle(kFullCircle);
        chargeMC->SetMarkerColor(kBlack);
@@ -333,6 +505,34 @@ int main(int argc, char *argv[]){
        chargeRescaledMC->SetLineColor(kRed);
        widthMC->SetLineColor(kRed);
 
+
+
+       clusterlocalMomZData->SetMarkerStyle(kFullCircle);
+       clusterlocalMomZData->GetXaxis()->SetTitle("local pz");
+       clustersideData->SetMarkerStyle(kFullCircle);
+       clustersideData->GetXaxis()->SetTitle("module side");
+       clusterstereoData->SetMarkerStyle(kFullCircle);
+       clusterstereoData->GetXaxis()->SetTitle("module stereo");
+       clusterupperData->SetMarkerStyle(kFullCircle);
+       clusterupperData->GetXaxis()->SetTitle("upper module");
+       clusterlocalMomZMC->SetLineColor(kRed);
+       clustersideMC->SetLineColor(kRed);
+       clusterstereoMC->SetLineColor(kRed);
+       tsosglobalphiData->SetMarkerStyle(kFullCircle);
+       tsosglobalphiData->GetXaxis()->SetTitle("global phi");
+       tsosglobalphiMC->SetLineColor(kRed);
+       tsosBdotZData->SetMarkerStyle(kFullCircle);
+       tsosBdotZData->GetXaxis()->SetTitle("B(z)");
+       tsosBdotZMC->SetLineColor(kRed);
+       tsosBdotYData->SetMarkerStyle(kFullCircle);
+       tsosBdotYData->GetXaxis()->SetTitle("B(y)");
+       tsosBdotYMC->SetLineColor(kRed);
+       tsoslocalpitchData->SetMarkerStyle(kFullCircle);
+       tsoslocalpitchData->GetXaxis()->SetTitle("pitch");
+       tsoslocalpitchMC->SetLineColor(kRed);
+
+
+    cout << "in here 6"  << endl;
 
        TCanvas c1("chargeForAllWidths","chargeForAllWidths");
        TPad pad1("pad1", "The pad 80% of the height",0.0,0.2,1.0,1.0);
@@ -384,22 +584,117 @@ int main(int argc, char *argv[]){
        chargeRescaledDataClone->Draw("e");
 
 
-       c1.SaveAs(("output/"+(string)dir+"/"+ (string)slayerCutDown+ "lt" +(string)subDet +"mt"+(string)slayerCutUp +"_eToADC_"+ (string)sePerADC  + "_xtalk_"+ (string)sx1 + "_"+ (string)sx2+ "_"+ (string)sx3 +  "charge.root").c_str());
-       c1.SaveAs(("output/"+(string)dir+"/"+ (string)slayerCutDown+ "lt" +(string)subDet +"mt"+(string)slayerCutUp +"_eToADC_"+ (string)sePerADC  + "_xtalk_"+ (string)sx1 + "_"+ (string)sx2+ "_"+ (string)sx3 +  "charge.eps").c_str());
+       TCanvas d("pz", "pz");
+       clusterlocalMomZData->DrawNormalized("");
+       clusterlocalMomZMC->DrawNormalized("same");
 
-       c2.SaveAs(("output/"+(string)dir+"/"+ (string)slayerCutDown+ "lt" +(string)subDet +"mt"+(string)slayerCutUp +"_eToADC_"+ (string)sePerADC  + "_xtalk_"+ (string)sx1 + "_"+ (string)sx2+ "_"+ (string)sx3 +  "width.root").c_str());
-       c2.SaveAs(("output/"+(string)dir+"/"+ (string)slayerCutDown+ "lt" +(string)subDet +"mt"+(string)slayerCutUp +"_eToADC_"+ (string)sePerADC  + "_xtalk_"+ (string)sx1 + "_"+ (string)sx2+ "_"+ (string)sx3 +  "width.eps").c_str());
+       TCanvas e("side", "side");
+       clustersideData->DrawNormalized("");
+       clustersideMC->DrawNormalized("same");
 
-       c3.SaveAs(("output/"+(string)dir+"/"+ (string)slayerCutDown+ "lt" +(string)subDet +"mt"+(string)slayerCutUp +"_eToADC_"+ (string)sePerADC  + "_xtalk_"+ (string)sx1 + "_"+ (string)sx2+ "_"+ (string)sx3 +  "chargeRescaled.root").c_str());
-       c3.SaveAs(("output/"+(string)dir+"/"+ (string)slayerCutDown+ "lt" +(string)subDet +"mt"+(string)slayerCutUp +"_eToADC_"+ (string)sePerADC  + "_xtalk_"+ (string)sx1 + "_"+ (string)sx2+ "_"+ (string)sx3 +  "chargeRescaled.eps").c_str());
+       TCanvas f("stereo", "stereo");
+       clusterstereoData->DrawNormalized("");
+       clusterstereoMC->DrawNormalized("same");
+
+       TCanvas g("phi", "phi");
+       tsosglobalphiData->DrawNormalized("");
+       tsosglobalphiMC->DrawNormalized("same");
+
+       TCanvas h("bDotZ", "BdotZ");
+       tsosBdotZData->DrawNormalized("");
+       tsosBdotZMC->DrawNormalized("same");
+
+       TCanvas i("bDotY", "BdotY");
+       tsosBdotYData->DrawNormalized("");
+       tsosBdotYMC->DrawNormalized("same");
+
+       TCanvas j("localPitch", "localPitch");
+       tsoslocalpitchData->DrawNormalized("");
+       tsoslocalpitchMC->DrawNormalized("same");
+
+       TCanvas k("zx", "zx");
+       localxAsGlobalzData->Draw("box" );
+      
+       TCanvas l("xz", "xz");
+       globalzAsLocalXData ->Draw(  );
+
+       TCanvas m("upper", "upper");
+       clusterupperData->DrawNormalized("");
+
+       TCanvas n("globZ", "globZ");
+       globZData->Draw("");
+
+       cout << "correlation factor of local x vs global z" << localxAsGlobalzData->GetCorrelationFactor() << endl ;
+       cout << "covariance factor of local x vs global z" << localxAsGlobalzData->GetCovariance() << endl ;
+
+       c1.SaveAs(("output/"+(string)dir+"/"+ (string)slayerCutDown+ "lt" +(string)subDet +"mt"+(string)slayerCutUp +"_eToADC_"+ (string)sePerADC  + "_xtalk_"+ (string)sx1 + "_"+ (string)sx2+ "_"+ (string)sx3 + norm+  "charge.root").c_str());
+       c1.SaveAs(("output/"+(string)dir+"/"+ (string)slayerCutDown+ "lt" +(string)subDet +"mt"+(string)slayerCutUp +"_eToADC_"+ (string)sePerADC  + "_xtalk_"+ (string)sx1 + "_"+ (string)sx2+ "_"+ (string)sx3 +  norm+"charge.eps").c_str());
+
+       c2.SaveAs(("output/"+(string)dir+"/"+ (string)slayerCutDown+ "lt" +(string)subDet +"mt"+(string)slayerCutUp +"_eToADC_"+ (string)sePerADC  + "_xtalk_"+ (string)sx1 + "_"+ (string)sx2+ "_"+ (string)sx3 + norm+ "width.root").c_str());
+       c2.SaveAs(("output/"+(string)dir+"/"+ (string)slayerCutDown+ "lt" +(string)subDet +"mt"+(string)slayerCutUp +"_eToADC_"+ (string)sePerADC  + "_xtalk_"+ (string)sx1 + "_"+ (string)sx2+ "_"+ (string)sx3 + norm+ "width.eps").c_str());
+
+       c3.SaveAs(("output/"+(string)dir+"/"+ (string)slayerCutDown+ "lt" +(string)subDet +"mt"+(string)slayerCutUp +"_eToADC_"+ (string)sePerADC  + "_xtalk_"+ (string)sx1 + "_"+ (string)sx2+ "_"+ (string)sx3 + norm+ "chargeRescaled.root").c_str());
+       c3.SaveAs(("output/"+(string)dir+"/"+ (string)slayerCutDown+ "lt" +(string)subDet +"mt"+(string)slayerCutUp +"_eToADC_"+ (string)sePerADC  + "_xtalk_"+ (string)sx1 + "_"+ (string)sx2+ "_"+ (string)sx3 + norm+ "chargeRescaled.eps").c_str());
+       
+
+       d.SaveAs(("output/"+(string)dir+"/"+ (string)slayerCutDown+ "lt" +(string)subDet +"mt"+(string)slayerCutUp +"_eToADC_"+ (string)sePerADC  + "_xtalk_"+ (string)sx1 + "_"+ (string)sx2+ "_"+ (string)sx3 +  norm+"localPz.root").c_str());
+       d.SaveAs(("output/"+(string)dir+"/"+ (string)slayerCutDown+ "lt" +(string)subDet +"mt"+(string)slayerCutUp +"_eToADC_"+ (string)sePerADC  + "_xtalk_"+ (string)sx1 + "_"+ (string)sx2+ "_"+ (string)sx3 + norm+ "localPz.eps").c_str());
+       e.SaveAs(("output/"+(string)dir+"/"+ (string)slayerCutDown+ "lt" +(string)subDet +"mt"+(string)slayerCutUp +"_eToADC_"+ (string)sePerADC  + "_xtalk_"+ (string)sx1 + "_"+ (string)sx2+ "_"+ (string)sx3 +  norm+"side.root").c_str());
+       e.SaveAs(("output/"+(string)dir+"/"+ (string)slayerCutDown+ "lt" +(string)subDet +"mt"+(string)slayerCutUp +"_eToADC_"+ (string)sePerADC  + "_xtalk_"+ (string)sx1 + "_"+ (string)sx2+ "_"+ (string)sx3 +  norm+"side.eps").c_str());
+       f.SaveAs(("output/"+(string)dir+"/"+ (string)slayerCutDown+ "lt" +(string)subDet +"mt"+(string)slayerCutUp +"_eToADC_"+ (string)sePerADC  + "_xtalk_"+ (string)sx1 + "_"+ (string)sx2+ "_"+ (string)sx3 +  norm+"stereo.root").c_str());
+       f.SaveAs(("output/"+(string)dir+"/"+ (string)slayerCutDown+ "lt" +(string)subDet +"mt"+(string)slayerCutUp +"_eToADC_"+ (string)sePerADC  + "_xtalk_"+ (string)sx1 + "_"+ (string)sx2+ "_"+ (string)sx3 +  norm+"stereo.eps").c_str());
+       g.SaveAs(("output/"+(string)dir+"/"+ (string)slayerCutDown+ "lt" +(string)subDet +"mt"+(string)slayerCutUp +"_eToADC_"+ (string)sePerADC  + "_xtalk_"+ (string)sx1 + "_"+ (string)sx2+ "_"+ (string)sx3 +  norm+"tsosglobalphi.root").c_str());
+       g.SaveAs(("output/"+(string)dir+"/"+ (string)slayerCutDown+ "lt" +(string)subDet +"mt"+(string)slayerCutUp +"_eToADC_"+ (string)sePerADC  + "_xtalk_"+ (string)sx1 + "_"+ (string)sx2+ "_"+ (string)sx3 +  norm+"tsosglobalphi.eps").c_str());
+       h.SaveAs(("output/"+(string)dir+"/"+ (string)slayerCutDown+ "lt" +(string)subDet +"mt"+(string)slayerCutUp +"_eToADC_"+ (string)sePerADC  + "_xtalk_"+ (string)sx1 + "_"+ (string)sx2+ "_"+ (string)sx3 +  norm+"bdotZ.root").c_str());
+       h.SaveAs(("output/"+(string)dir+"/"+ (string)slayerCutDown+ "lt" +(string)subDet +"mt"+(string)slayerCutUp +"_eToADC_"+ (string)sePerADC  + "_xtalk_"+ (string)sx1 + "_"+ (string)sx2+ "_"+ (string)sx3 +  norm+"bdotZ.eps").c_str());
+       i.SaveAs(("output/"+(string)dir+"/"+ (string)slayerCutDown+ "lt" +(string)subDet +"mt"+(string)slayerCutUp +"_eToADC_"+ (string)sePerADC  + "_xtalk_"+ (string)sx1 + "_"+ (string)sx2+ "_"+ (string)sx3 +  norm+"bdotY.root").c_str());
+       i.SaveAs(("output/"+(string)dir+"/"+ (string)slayerCutDown+ "lt" +(string)subDet +"mt"+(string)slayerCutUp +"_eToADC_"+ (string)sePerADC  + "_xtalk_"+ (string)sx1 + "_"+ (string)sx2+ "_"+ (string)sx3 +  norm+"bdotY.eps").c_str());
+       j.SaveAs(("output/"+(string)dir+"/"+ (string)slayerCutDown+ "lt" +(string)subDet +"mt"+(string)slayerCutUp +"_eToADC_"+ (string)sePerADC  + "_xtalk_"+ (string)sx1 + "_"+ (string)sx2+ "_"+ (string)sx3 +  norm+"localPitch.root").c_str());
+       j.SaveAs(("output/"+(string)dir+"/"+ (string)slayerCutDown+ "lt" +(string)subDet +"mt"+(string)slayerCutUp +"_eToADC_"+ (string)sePerADC  + "_xtalk_"+ (string)sx1 + "_"+ (string)sx2+ "_"+ (string)sx3 +  norm+"localPitch.eps").c_str());
+       k.SaveAs(("output/"+(string)dir+"/"+ (string)slayerCutDown+ "lt" +(string)subDet +"mt"+(string)slayerCutUp +"_eToADC_"+ (string)sePerADC  + "_xtalk_"+ (string)sx1 + "_"+ (string)sx2+ "_"+ (string)sx3 +  norm+"localXGlobalZ.root").c_str());
+       k.SaveAs(("output/"+(string)dir+"/"+ (string)slayerCutDown+ "lt" +(string)subDet +"mt"+(string)slayerCutUp +"_eToADC_"+ (string)sePerADC  + "_xtalk_"+ (string)sx1 + "_"+ (string)sx2+ "_"+ (string)sx3 +  norm+"localXGlobalZ.eps").c_str());
+       l.SaveAs(("output/"+(string)dir+"/"+ (string)slayerCutDown+ "lt" +(string)subDet +"mt"+(string)slayerCutUp +"_eToADC_"+ (string)sePerADC  + "_xtalk_"+ (string)sx1 + "_"+ (string)sx2+ "_"+ (string)sx3 +  norm+"profGlobalZLocx.root").c_str());
+       l.SaveAs(("output/"+(string)dir+"/"+ (string)slayerCutDown+ "lt" +(string)subDet +"mt"+(string)slayerCutUp +"_eToADC_"+ (string)sePerADC  + "_xtalk_"+ (string)sx1 + "_"+ (string)sx2+ "_"+ (string)sx3 +  norm+"progGlobalZlocx.eps").c_str());
+       m.SaveAs(("output/"+(string)dir+"/"+ (string)slayerCutDown+ "lt" +(string)subDet +"mt"+(string)slayerCutUp +"_eToADC_"+ (string)sePerADC  + "_xtalk_"+ (string)sx1 + "_"+ (string)sx2+ "_"+ (string)sx3 +  norm+"upper.root").c_str());
+       m.SaveAs(("output/"+(string)dir+"/"+ (string)slayerCutDown+ "lt" +(string)subDet +"mt"+(string)slayerCutUp +"_eToADC_"+ (string)sePerADC  + "_xtalk_"+ (string)sx1 + "_"+ (string)sx2+ "_"+ (string)sx3 +  norm+"upper.eps").c_str());
+       n.SaveAs(("output/"+(string)dir+"/"+ (string)slayerCutDown+ "lt" +(string)subDet +"mt"+(string)slayerCutUp +"_eToADC_"+ (string)sePerADC  + "_xtalk_"+ (string)sx1 + "_"+ (string)sx2+ "_"+ (string)sx3 +  norm+"globZ.root").c_str());
+       n.SaveAs(("output/"+(string)dir+"/"+ (string)slayerCutDown+ "lt" +(string)subDet +"mt"+(string)slayerCutUp +"_eToADC_"+ (string)sePerADC  + "_xtalk_"+ (string)sx1 + "_"+ (string)sx2+ "_"+ (string)sx3 +  norm+"globZ.eps").c_str());
       /////////////////////////////////////////////////////
 
+}
+     
+       delete chargeData; 
+       delete chargeMC; 
+       delete widthData;
+       delete widthMC; 
+       delete chargeRescaledData; 
+       delete chargeRescaledMC; 
+
+       delete clusterlocalMomZMC;
+       delete clustersideMC;
+       delete clusterstereoMC;
+       delete clusterlocalMomZData;
+       delete clustersideData;
+       delete clusterstereoData;
+
+       delete tsosglobalphiData;
+       delete tsosglobalphiMC;
+       delete tsosBdotZData;
+       delete tsosBdotZMC;
+       delete tsosBdotYData;
+       delete tsosBdotYMC;
+       delete tsoslocalpitchData;
+       delete tsoslocalpitchMC;
+       delete localxAsGlobalzData;
+       delete globalzAsLocalXData; 
+       delete  globZData;
+       delete clusterupperData;
+
+return 0;
 
 
+    cout << "in here 7"  << endl;
 
-    //cout << "in here 7"  << endl;
-
-   return 0;
 }
 
    std::multimap<float,string> fillMap( string fname )
