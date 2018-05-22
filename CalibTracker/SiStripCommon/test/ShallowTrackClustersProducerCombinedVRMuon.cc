@@ -645,10 +645,9 @@ produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
           }
       }*/
 
-  //@MJ@ TODO collision data
+  //if(iEvent.id().run() == 303357) TODO
   if(true)
-  //if(iEvent.id().run() == 303357)
-  //{
+  {
 
 
   float PU_=0;
@@ -729,30 +728,27 @@ cout << "before good track " << endl;
        vzOfMu.push_back(muT->vz());       
 
          
-      //@MJ@ TODO collision data
       //if(MuCollection->at(mmu).isTrackerMuon() && MuCollection->at(mmu).isGlobalMuon() )
       //if(/*MuCollection->at(mmu).isTrackerMuon() &&*/ MuCollection->at(mmu).isStandAloneMuon() )
-      if(MuCollection->at(mmu).isGlobalMuon() )
+      if(MuCollection->at(mmu).isTrackerMuon() && MuCollection->at(mmu).isGlobalMuon() )
       {
           // (*nrofmuons)++;
           //cout << "global muon" << MuCollection->at(mu).isGlobalMuon() << endl;
           muFound = true;
           trackerTrack.push_back(mmu);
           globalCounter++; 
-          //break;
+          break;
       }
   }
 
   cout << "number of global tracks " << globalCounter << endl;
      
 
-     bool tPresent = false; 
        nrOfMus->push_back(muType.size());
        if(muType.size()==2) 
        {
             if(vzOfMu.at(0) > vzOfMu.at(1)-5 && vzOfMu.at(0) < vzOfMu.at(1)+5)
             {
-                tPresent = true;
                 //cout << "after z cut " << endl;
                 if(muType.at(0) == 1 && muType.at(1) == 2 )
                 {
@@ -768,23 +764,13 @@ cout << "before good track " << endl;
             }
        }
 
+       muType.clear();
+       timeOfMu.clear();       
+       vzOfMu.clear();       
  
  
       if(!muFound) //no tacker muon
           continue;
-     
-     /*for(uint32_t t=0; t<muType.size(); t++)
-     {
-         if(muType.at(t) == 1)
-            tPresent = true;
-
-     } */
-     //if(!tPresent) //no tacker muon
-     //     continue;
-
-       muType.clear();
-       timeOfMu.clear();       
-       vzOfMu.clear();       
 
 //muon loop
   for(uint32_t l=0; l<trackerTrack.size(); l++ )
@@ -806,7 +792,6 @@ cout << "before good track " << endl;
      cout << "outer global detid " << bestMu->outerDetId() << " outer local det id " << track->outerDetId() << endl;
      if( !(bestMu->innerDetId() == track->innerDetId()) )
          continue;
-     //@MJ@ TODO collision data
      if( !(bestMu->outerDetId() == track->outerDetId()) )
          continue;
 
@@ -825,7 +810,6 @@ cout << "before good track " << endl;
      uint32_t nrOfMuHits = 0;
      std::vector<uint32_t> sectorsOfDT;
 
-     //@MJ@ TODO collision data
      reco::TrackRef muTrack = muonR->globalTrack();
      //reco::TrackRef muTrack = muonR->standAloneMuon();
      if(!muTrack.isNull())
@@ -893,8 +877,7 @@ cout << "before good track " << endl;
                  {
                      muOrigin->push_back(4);
                  }
-           
-             //@MJ@ TODO collision muon 
+            
              //if(true)
              if(abs(muTrack->eta())<1)
              {

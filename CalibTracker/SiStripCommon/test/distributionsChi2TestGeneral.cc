@@ -421,7 +421,7 @@ int main(int argc, char *argv[]){
     //TString slayerCutDown = argv[7];
     //TString slayerCutUp = argv[8];
 
-if(norm == "mono" || norm == "stereo")
+if(norm == "mono" || norm == "stereo" || norm == "all")
 {
 
        std::multimap<float,string> returnedMap = fillMap((string)subDet+"l"+(string)slayerCutDown+"to"+(string)slayerCutUp+ norm+"Width.txt" );
@@ -475,7 +475,7 @@ if(norm == "mono" || norm == "stereo")
 
 */
     cout << "in here 5"  << endl;
-if(norm == "monop" || norm == "stereop")
+if(norm == "monop" || norm == "stereop" || norm == "allp")
 {
 //////////////////////filling
        chargeData->SetMarkerStyle(kFullCircle);

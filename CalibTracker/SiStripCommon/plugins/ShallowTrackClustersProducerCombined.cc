@@ -30,6 +30,7 @@
 #include <map>
 #include <iostream>
 #include <fstream>
+#include "TMath.h"
 
 using namespace std;
 
@@ -113,11 +114,13 @@ ShallowTrackClustersProducerCombined::ShallowTrackClustersProducerCombined(const
   produces <std::vector<float> >       ( Prefix + "barystrip"    );
   produces <std::vector<float> >       ( Prefix + "middlestrip"  );
   produces <std::vector<unsigned> >    ( Prefix + "charge"       );
+  produces <std::vector<float> >    ( Prefix + "chargeRescaled"       );
   produces <std::vector<float> >       ( Prefix + "noise"        );
   produces <std::vector<float> >       ( Prefix + "ston"         );
   produces <std::vector<unsigned> >    ( Prefix + "seedstrip"    );
   produces <std::vector<unsigned> >    ( Prefix + "seedindex"    );
   produces <std::vector<unsigned> >    ( Prefix + "seedcharge"   );
+  produces <std::vector<float> >    ( Prefix + "seedchargeRescaled"   );
   produces <std::vector<float> >       ( Prefix + "seednoise"    );
   produces <std::vector<float> >       ( Prefix + "seednoisepure"    );
   produces <std::vector<float> >       ( Prefix + "seedgain"     );
@@ -148,6 +151,7 @@ ShallowTrackClustersProducerCombined::ShallowTrackClustersProducerCombined(const
   produces <std::vector<float> >         ( Prefix + "sensorThickness"        );
   produces <std::vector<float> >         ( Prefix + "stripCharge"        );
   produces <std::vector<float> >         ( Prefix + "stripChargeTotCharge"        );
+  produces <std::vector<float> >         ( Prefix + "stripChargeTotChargeRescaled"        );
   produces <std::vector<unsigned> >         ( Prefix + "stripChargeTotWidth"        );
   produces <std::vector<int> >         ( Prefix + "stripChargeStripNr"        );
   produces <std::vector<float> >         ( Prefix + "stripChargeLocalTrackPhi"        );
@@ -163,6 +167,7 @@ ShallowTrackClustersProducerCombined::ShallowTrackClustersProducerCombined(const
   produces <std::vector<float> >         ( Prefix + "stripChargelocalpitch"        );
   produces <std::vector<float> >         ( Prefix + "stripChargesensorThickness"        );
   produces <std::vector<float> >         ( Prefix + "stripChargeBdotY"        );
+  produces <std::vector<float> >         ( Prefix + "stripChargeRescaled"        );
 
   produces <std::vector<float> >        ( "PU"       );
   produces <std::vector<unsigned int> > ( "bx"       );
@@ -249,11 +254,13 @@ produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto       barystrip     = std::make_unique<std::vector<float>>();
   auto       middlestrip   = std::make_unique<std::vector<float>>();
   auto       charge        = std::make_unique<std::vector<unsigned>>();
+  auto       chargeRescaled        = std::make_unique<std::vector<float>>();
   auto       noise         = std::make_unique<std::vector<float>>();
   auto       ston          = std::make_unique<std::vector<float>>();
   auto       seedstrip     = std::make_unique<std::vector<unsigned>>();
   auto       seedindex     = std::make_unique<std::vector<unsigned>>();
   auto       seedcharge    = std::make_unique<std::vector<unsigned>>();
+  auto       seedchargeRescaled    = std::make_unique<std::vector<float>>();
   auto       seednoise     = std::make_unique<std::vector<float>>();
   auto       seednoisepure     = std::make_unique<std::vector<float>>();
   auto       seedgain      = std::make_unique<std::vector<float>>();
@@ -284,6 +291,7 @@ produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto       sensorThickness     = std::make_unique<std::vector<float>>();
   auto       stripCharge     = std::make_unique<std::vector<float>>();
   auto       stripChargeTotCharge     = std::make_unique<std::vector<float>>();
+  auto       stripChargeTotChargeRescaled     = std::make_unique<std::vector<float>>();
   auto       stripChargeTotWidth     = std::make_unique<std::vector<unsigned>>();
   auto       stripChargeStripNr     = std::make_unique<std::vector<int>>();
   auto       stripChargeLocalTrackPhi     = std::make_unique<std::vector<float>>();
@@ -299,6 +307,7 @@ produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto       stripChargelocalpitch    = std::make_unique<std::vector<float>>();
   auto       stripChargesensorThickness    = std::make_unique<std::vector<float>>();
   auto       stripChargeBdotY   = std::make_unique<std::vector<float>>();
+  auto       stripChargeRescaled     = std::make_unique<std::vector<float>>();
 
   auto       PU      = std::make_unique<std::vector<float>>();
   auto bx            = std::make_unique<std::vector<unsigned int>>();
@@ -437,17 +446,21 @@ produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
       (number->at(moduleV.subdetid))++;
                      
                       float langle = (SiStripLorentzAngle.isValid()) ? SiStripLorentzAngle->getLorentzAngle(id) : 0.;;
+                      float rescaledCharge =    info.charge()/ (theStripDet->specificSurface().bounds().thickness() / TMath::Abs(TMath::Cos(theStripDet->toLocal(tsos.globalDirection()).theta())) );
+                      float rescaledSeedCharge =    info.maxCharge()/ (theStripDet->specificSurface().bounds().thickness() / TMath::Abs(TMath::Cos(theStripDet->toLocal(tsos.globalDirection()).theta())) );
                       lorentzAngle->push_back(langle);
                       width->push_back(        cluster_ptr->amplitudes().size()                              );
 		      barystrip->push_back(    cluster_ptr->barycenter()                                     );
 		      variance->push_back(     info.variance()                                         );
 		      middlestrip->push_back(  info.firstStrip() + info.width()/2.0                    );
 		      charge->push_back(       info.charge()                                           );
+		      chargeRescaled->push_back(       rescaledCharge                                        );
 		      noise->push_back(        info.noiseRescaledByGain()                              );
 		      ston->push_back(         info.signalOverNoise()                                  );
 		      seedstrip->push_back(    info.maxStrip()                                         );
 		      seedindex->push_back(    info.maxIndex()                                         );
 		      seedcharge->push_back(   info.maxCharge()                                        );
+		      seedchargeRescaled->push_back(   rescaledSeedCharge                                        );
 		      seednoise->push_back(    info.stripNoisesRescaledByGain().at(info.maxIndex())   );
 		      seednoisepure->push_back(     info.stripNoises().at(info.maxIndex())                  );
 		      seedgain->push_back(     info.stripGains().at(info.maxIndex())                  );
@@ -500,6 +513,9 @@ produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
           stripChargelocalpitch->push_back(  (theStripDet->specificTopology()).localPitch(theStripDet->toLocal(tsos.globalPosition())) ); 
           stripChargesensorThickness->push_back(             theStripDet->specificSurface().bounds().thickness() );
 	  stripChargeBdotY->push_back(       (theStripDet->surface()).toLocal( magfield->inTesla(theStripDet->surface().position())).y() );
+          stripChargeTotChargeRescaled->push_back(rescaledCharge );
+          float rescaledChargeStrip =   *itAmpl  / (theStripDet->specificSurface().bounds().thickness() / TMath::Abs(TMath::Cos(theStripDet->toLocal(tsos.globalDirection()).theta())) );
+	  stripChargeRescaled->push_back( rescaledChargeStrip );
           ++strips; 
       }
 
@@ -620,11 +636,13 @@ produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(std::move(barystrip),   Prefix + "barystrip"    );
   iEvent.put(std::move(middlestrip), Prefix + "middlestrip"  );
   iEvent.put(std::move(charge),      Prefix + "charge"       );
+  iEvent.put(std::move(chargeRescaled),      Prefix + "chargeRescaled"       );
   iEvent.put(std::move(noise),       Prefix + "noise"        );
   iEvent.put(std::move(ston),        Prefix + "ston"         );
   iEvent.put(std::move(seedstrip),   Prefix + "seedstrip"    );
   iEvent.put(std::move(seedindex),   Prefix + "seedindex"    );
   iEvent.put(std::move(seedcharge),  Prefix + "seedcharge"   );
+  iEvent.put(std::move(seedchargeRescaled),  Prefix + "seedchargeRescaled"   );
   iEvent.put(std::move(seednoise),   Prefix + "seednoise"    );
   iEvent.put(std::move(seednoisepure),   Prefix + "seednoisepure"    );
   iEvent.put(std::move(seedgain),    Prefix + "seedgain"     );
@@ -655,6 +673,7 @@ produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(std::move(sensorThickness),       Prefix + "sensorThickness"        );
   iEvent.put(std::move(stripCharge),       Prefix + "stripCharge"        );
   iEvent.put(std::move(stripChargeTotCharge),       Prefix + "stripChargeTotCharge"        );
+  iEvent.put(std::move(stripChargeTotChargeRescaled),       Prefix + "stripChargeTotChargeRescaled"        );
   iEvent.put(std::move(stripChargeTotWidth),       Prefix + "stripChargeTotWidth"        );
   iEvent.put(std::move(stripChargeStripNr),       Prefix + "stripChargeStripNr"        );
   iEvent.put(std::move(stripChargeLocalTrackPhi),       Prefix + "stripChargeLocalTrackPhi"        );
@@ -670,6 +689,7 @@ produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(std::move(stripChargelocalpitch),   Prefix + "stripChargelocalpitch"    );
   iEvent.put(std::move(stripChargesensorThickness),   Prefix + "stripChargesensorThickness"    );
   iEvent.put(std::move(stripChargeBdotY),   Prefix + "stripChargeBdotY"    );
+  iEvent.put(std::move(stripChargeRescaled),       Prefix + "stripChargeRescaled"        );
   iEvent.put(std::move(PU),       "PU"        );
   iEvent.put(std::move(bx),       "bx"        );
   iEvent.put(std::move(nroftracks),       "nroftracks"        );
