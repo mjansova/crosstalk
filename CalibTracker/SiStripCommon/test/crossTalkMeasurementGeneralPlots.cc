@@ -56,6 +56,9 @@
 #include "TMath.h"
 #include "TLegend.h"
 #include "TProfile.h"
+#include "TLatex.h"
+#include "TMinuit.h"
+#include "TFitResultPtr.h"
 
 using namespace std;
 
@@ -73,8 +76,8 @@ int main(int argc, char *argv[]){
 Modified_tdr_style();
  //gStyle->SetOptStat(1111111111);
  //gStyle->SetOptStat(1111111);
- gStyle->SetOptStat("kKsSiourRmMen");
-// gStyle->SetOptStat(0);
+ //gStyle->SetOptStat("kKsSiourRmMen");
+ //gStyle->SetOptStat(0);
  //gROOT->ForceStyle();
  
  TH1::SetDefaultSumw2();
@@ -262,7 +265,7 @@ Modified_tdr_style();
        t1->SetBranchAddress("CTouterZtop",  &CTouterZtop );
        t1->SetBranchAddress("CTouterEtatop",  &CTouterEtatop );
        t1->SetBranchAddress("CTstripChargeSeedChargeRescaled",  &CTstripChargeSeedChargeRescaled );
-       //t1->SetBranchAddress("CTstripChargeTotChargeRescaled",  &CTstripChargeTotChargeRescaled );
+       t1->SetBranchAddress("CTstripChargeTotChargeRescaled",  &CTstripChargeTotChargeRescaled );
        t1->SetBranchAddress("CTmuonsIsGlobal",  &CTmuonsIsGlobal );
        t1->SetBranchAddress("CTmuonsIsTracker",  &CTmuonsIsTracker );
        t1->SetBranchAddress("CTMuOrigin",  &CTMuOrigin );
@@ -347,7 +350,7 @@ Modified_tdr_style();
                        subCTlocalX.push_back(CTlocalX->at(k));
 
                        subCTstripChargeSeedChargeRescaled.push_back(CTstripChargeSeedChargeRescaled->at(k));
-                       //subCTstripChargeSeedChargeRescaled.push_back(CTstripChargeTotChargeRescaled->at(k));
+                       subCTstripChargeTotChargeRescaled.push_back(CTstripChargeTotChargeRescaled->at(k));
                        subCTmuonsIsGlobal.push_back(CTmuonsIsGlobal->at(k));
                        subCTmuonsIsTracker.push_back(CTmuonsIsTracker->at(k));
                        subCTtof.push_back(CTtof->at(k));
@@ -357,11 +360,11 @@ Modified_tdr_style();
                        if( (k+2 > CTMuOrigin->size() ) || (CTMuOrigin->size()==0 && k==0) ) //finish this
                        {
                            subCTMuOrigin.push_back(3);
-                           cout << "why are you making so many mistakes?! " << endl;
+                           //cout << "why are you making so many mistakes?! " << endl;
                        }
                        else
                        { 
-                           cout << " k " << k << " size " << CTMuOrigin->size()<< endl;
+                           //cout << " k " << k << " size " << CTMuOrigin->size()<< endl;
                            subCTMuOrigin.push_back(CTMuOrigin->at(k));
                        }
                        //cout << "in here workaround 2" << endl;
@@ -382,9 +385,36 @@ Modified_tdr_style();
  //  cout << "in here c" << endl;
 
 
+       TFile fE("TreeForE.root", "recreate");
+       TTree tE("tE" , "tE");
+       float eSubdetid;
+       float eLayerWheel;
+       float eChn1right;
+       float eChn2right;
+       float eChn1left;
+       float eChn2left;
+       float eChSeed;
+       float eChTot;
+       float eTime;
+       tE.Branch("eSubdetid", &eSubdetid);
+       tE.Branch("eLayerWheel", &eLayerWheel);
+       tE.Branch("eChn1right", &eChn1right);
+       tE.Branch("eChn2right", &eChn2right);
+       tE.Branch("eChn1left", &eChn1left);
+       tE.Branch("eChn2left", &eChn2left);
+       tE.Branch("eChSeed", &eChSeed);
+       tE.Branch("eChTot", &eChTot);
+       tE.Branch("eTime", &eTime);
+
+       
+
        //F
        vector<TH1F*> narrowTrackSharing1Data;
        vector<TH1F*> narrowTrackSharing2Data;
+       vector<TH1F*> narrowTrackSharing1DataUp;
+       vector<TH1F*> narrowTrackSharing2DataUp;
+       vector<TH1F*> narrowTrackSharing1DataDown;
+       vector<TH1F*> narrowTrackSharing2DataDown;
 
 
        vector< vector<TH1F*> > narrowTrackSharing1DataEvolution;
@@ -419,6 +449,17 @@ Modified_tdr_style();
        vector<TH1F*> timingError;
        vector<TCanvas*> timingErrorCan;
 
+       vector<TProfile*> np1Evolution;
+       vector<TProfile*> np2Evolution;
+       vector<TProfile*> nm1Evolution;
+       vector<TProfile*> nm2Evolution;
+       vector<TProfile*>  nSeedEvolution;
+       vector<TCanvas*> np1EvolutionCan;
+       vector<TCanvas*> np2EvolutionCan;
+       vector<TCanvas*> nm1EvolutionCan;
+       vector<TCanvas*> nm2EvolutionCan;
+       vector<TCanvas*>  nSeedEvolutionCan;
+
        vector<TH1F*> timingDirection;
        vector<TCanvas*> timingDirectionCan;
 
@@ -431,12 +472,15 @@ Modified_tdr_style();
        vector<TProfile*> chargePerUnitBeta;
        vector<vector<TProfile*> > chargePerUnitBins;
        vector<TH1F*> chargePerUnitBinsFit;
+       //TH1F* chargePerUnitLayersBinsFit;
+       //TCanvas* chargePerUnitLayersBinsFitCan;
        vector<TH1F*> chargePerUnitHist;
        vector<TH1F*> thetaSmall;
        vector<TH1F*> thetaLarge;
        vector<TH1F*> timing;
        vector<TH1F*> timingNC;
        vector<TH1F*> beta;
+      
 
 
        vector<TProfile*> chargeCenter;
@@ -587,6 +631,10 @@ Modified_tdr_style();
 
        narrowTrackSharing1Data.resize(20, NULL);
        narrowTrackSharing2Data.resize(20, NULL);
+       narrowTrackSharing1DataUp.resize(20, NULL);
+       narrowTrackSharing2DataUp.resize(20, NULL);
+       narrowTrackSharing1DataDown.resize(20, NULL);
+       narrowTrackSharing2DataDown.resize(20, NULL);
        narrowTrackSharing1DataCan.resize(20, NULL);
        narrowTrackSharing2DataCan.resize(20, NULL);
 
@@ -620,6 +668,17 @@ Modified_tdr_style();
        beta.resize(20, NULL);
        timingCan.resize(20, NULL);
        betaCan.resize(20, NULL);
+
+       np1Evolution.resize(20, NULL);
+       np1EvolutionCan.resize(20, NULL);
+       np2Evolution.resize(20, NULL);
+       np2EvolutionCan.resize(20, NULL);
+       nm1Evolution.resize(20, NULL);
+       nm1EvolutionCan.resize(20, NULL);
+       nm2Evolution.resize(20, NULL);
+       nm2EvolutionCan.resize(20, NULL);
+       nSeedEvolution.resize(20, NULL);
+       nSeedEvolutionCan.resize(20, NULL);
 
        vnrOfHitsVsError.resize(20, NULL);
        nrOfSectorsVsError.resize(20, NULL);
@@ -674,6 +733,8 @@ Modified_tdr_style();
 
        //joint plots for layers
        TProfile*  chargePerUnitLayers =  new TProfile("chargePerUnitLayers", "chargePerUnitLayers" , 30, -15, 15, 1000, 5000 ) ;
+       TH1F*  chargePerUnitLayersBinsFit =  new TH1F("chargePerUnitLayerssBinsFit ", "chargePerUnitLayerssBinsFit" , 10000, 0, 100 ) ;
+       TCanvas*  chargePerUnitLayersBinsFitCan =  new TCanvas("chargePerUnitLayerssBinsFitCan", "chargePerUnitLayerssBinsFitCan"  ) ;
        TProfile*  chargePerUnitLayersGlobal =  new TProfile("chargePerUnitLayersGlobal", "chargePerUnitLayersGlobal" , 30, -15, 15, 1000, 5000 ) ;
        TProfile*  chargePerUnitLayersTracker =  new TProfile("chargePerUnitLayersTracker", "chargePerUnitLayersTracker" , 30, -15, 15, 1000, 5000 ) ;
        TProfile*  chargePerUnitLayersBeta =  new TProfile("chargePerUnitLayersBeta", "chargePerUnitLayersBeta" , 30, -15, 15, 1000, 5000 ) ;
@@ -682,7 +743,7 @@ Modified_tdr_style();
        chargePerUnitLayersBins.resize(4,NULL) ;
        for(uint32_t g=0; g<4; g++)
        {
-           chargePerUnitLayersBins.at(g) =  new TProfile("chargePerUnitLayersBins", "chargePerUnitLayersBins" , 6, -10, 10,1000, 5000 ) ;
+           chargePerUnitLayersBins.at(g) =  new TProfile("chargePerUnitLayersBins", "chargePerUnitLayersBins" , 15, -20, 10 ) ;
        }
        TH1F*  chargePerUnitHistLayers =  new TH1F("chargePerUnitHistLayers", "chargePerUnitHistLayers" , 80, 0, 8000 ) ;
        TProfile*  timeVsVzLayers =  new TProfile("timeVsVzLayers", "timeVsVzLayers" , 30, -150, 150 ) ;
@@ -718,6 +779,8 @@ Modified_tdr_style();
 
        vector< vector< vector<float> > > timeMedian;
        timeMedian.resize(20);
+       vector< vector<float> >  timeMedianLayers;
+       timeMedianLayers.resize(4);
        
 
        uint8_t TIDoffset = 3;
@@ -816,6 +879,8 @@ Modified_tdr_style();
                    if(narrowTrackSharing1Data.at(partPos) == NULL)
                    {
                        narrowTrackSharing1Data.at(partPos) = new TH1F( ("narrowTrackSharing1"+ parName).c_str() , ("narrowTrackSharing1"+parName).c_str() , 100, -1, 1 );
+                       narrowTrackSharing1DataUp.at(partPos) = new TH1F( ("narrowTrackSharing1Up"+ parName).c_str() , ("narrowTrackSharing1Up"+parName).c_str() , 100, -1, 1 );
+                       narrowTrackSharing1DataDown.at(partPos) = new TH1F( ("narrowTrackSharing1Down"+ parName).c_str() , ("narrowTrackSharing1Down"+parName).c_str() , 100, -1, 1 );
                        narrowTrackSharing1DataCan.at(partPos) = new TCanvas( ("cnarrowTrackSharing1"+ parName).c_str() , ("cnarrowTrackSharing1"+parName).c_str()  );
                        narrowTrackSharing1DataEvolution.at(partPos).resize(120, NULL);
                        narrowTrackSharing1DataEvolutionL1.at(partPos).resize(120, NULL);
@@ -873,31 +938,48 @@ Modified_tdr_style();
                            narrowTrackSharing2DataEvolutionDist.at(partPos).at(v) = new TH1F( ("narrowTrackSharing2EvolutionDist"+ parName).c_str() , ("narrowTrackSharing2EvolutionDist"+parName).c_str() , 50, -1, 1 );
                        }                       
                        canvases.push_back(parName);
-   cout << "in here 2.1" << endl;
+  // cout << "in here 2.1" << endl;
                    }
                    if(narrowTrackSharing2Data.at(partPos) == NULL)
                    {
                        narrowTrackSharing2Data.at(partPos) = new TH1F( ("narrowTrackSharing2"+ parName).c_str() , ("narrowTrackSharing2"+parName).c_str() , 100, -1, 1 );
+ //  cout << "in here 2.1" << endl;
+                       narrowTrackSharing2DataUp.at(partPos) = new TH1F( ("narrowTrackSharing2Up"+ parName).c_str() , ("narrowTrackSharing2Up"+parName).c_str() , 100, -1, 1 );
+  // cout << "in here 2.1a" << endl;
+                       narrowTrackSharing2DataDown.at(partPos) = new TH1F( ("narrowTrackSharing2Down"+ parName).c_str() , ("narrowTrackSharing2Down"+parName).c_str() , 100, -1, 1 );
+  // cout << "in here 2.1b" << endl;
                        narrowTrackSharing2DataCan.at(partPos) = new TCanvas( ("cnarrowTrackSharing2"+ parName).c_str() , ("cnarrowTrackSharing2"+parName).c_str());
+ //  cout << "in here 2.1c" << endl;
                        narrowTrackSharing2DataEvolution.at(partPos).resize(120, NULL);
+ //  cout << "in here 2.1d" << endl;
                        chargePerUnitBins.at(partPos).resize(4, NULL);
+ ///  cout << "in here 2.1e" << endl;
                        timeMedian.at(partPos).resize(4);
+ //  cout << "in here 2.1f" << endl;
                        etaOneaAsTimeLayer.at(partPos).resize(4, NULL);
+  // cout << "in here 2.1g" << endl;
                        etaTwoAsTimeLayer.at(partPos).resize(4, NULL);
+ //  cout << "in here 2.1h" << endl;
                        etaOneaAsTimeMonoStereo.at(partPos).resize(4, NULL);
+  // cout << "in here 2.1i" << endl;
                        etaTwoAsTimeMonoStereo.at(partPos).resize(4, NULL);
+ //  cout << "in here 2.1j" << endl;
                        chargePerUnitBinsCan.at(partPos) =  new TCanvas(("chargePerUnitBins"+ parName).c_str() , ("chargePerUnitBins"+parName).c_str()) ;
+ //  cout << "in here 2.1k" << endl;
                        chargePerUnitBinsFitCan.at(partPos) =  new TCanvas(("cchargePerUnitBinsFit"+ parName).c_str() , ("cchargePerUnitBinsFit"+parName).c_str()) ;
-                       chargePerUnitBinsFit.at(partPos) =  new TH1F(("chargePerUnitBinsFit"+ parName).c_str() , ("chargePerUnitBinsFit"+parName).c_str(), 10000, -150, 150) ;
+ //  cout << "in here 2.1l" << endl;
+                       chargePerUnitBinsFit.at(partPos) =  new TH1F(("chargePerUnitBinsFit"+ parName).c_str() , ("chargePerUnitBinsFit"+parName).c_str(), 10000, 0, 100) ;
+ //  cout << "in here 2.1m" << endl;
 
                        for(uint32_t v=0; v<4; v++)
                        {
-                           chargePerUnitBins.at(partPos).at(v) = new TProfile( ("chargePerUnitBins"+ parName).c_str() , ("chargePerUnitBins"+parName).c_str() , 75, -100, 100 );
+                           chargePerUnitBins.at(partPos).at(v) = new TProfile( ("chargePerUnitBins"+ parName).c_str() , ("chargePerUnitBins"+parName).c_str() , 10, -20, 10 );
 		           etaOneaAsTimeLayer.at(partPos).at(v) =  new TH1F(("etaOneaAsTimeLayer"+ parName).c_str(), ("etaOneaAsTimeLayer"+ parName).c_str() , 120, -60, 60 ) ;
 		           etaTwoAsTimeLayer.at(partPos).at(v) =  new TH1F(("etaTwoAsTimeLayer"+ parName).c_str(), ("etaTwoAsTimeLayer"+ parName).c_str() , 120, -60, 60 ) ;
 		           etaOneaAsTimeMonoStereo.at(partPos).at(v) =  new TH1F(("etaOneaAsTimeMonoStereo"+ parName).c_str(), ("etaOneaAsTimeMonoStereo"+ parName).c_str() , 120, -60, 60 ) ;
 		           etaTwoAsTimeMonoStereo.at(partPos).at(v) =  new TH1F(("etaTwoAsTimeMonoStereo"+ parName).c_str(), ("etaTwoAsTimeMonoStereo"+ parName).c_str() , 120, -60, 60 ) ;
                        }                       
+   cout << "in here 2.1" << endl;
                        for(uint32_t v=0; v<120; v++)
                        {
                            narrowTrackSharing2DataEvolution.at(partPos).at(v) = new TH1F( ("narrowTrackSharing2Evolution"+ parName).c_str() , ("narrowTrackSharing2Evolution"+parName).c_str() , 50, -1, 1 );
@@ -914,8 +996,21 @@ Modified_tdr_style();
 		       charge.at(partPos)=  new TProfile(("charge"+ parName).c_str(), ("charge"+ parName).c_str() , 200, -100, 100, 0, 1000 ) ;
 		       timing.at(partPos)=  new TH1F(("timing"+ parName).c_str(), ("timing"+ parName).c_str() , 80, -30, 50 ) ;
 		       timingNC.at(partPos)=  new TH1F(("timingNC"+ parName).c_str(), ("timingNC"+ parName).c_str() , 80, -30, 50 ) ;
+
+                       np1Evolution.at(partPos) = new TProfile(("np1Evolution"+ parName).c_str(), ("np1Evolution"+ parName).c_str() , 30, -20, 10 ); 
+                       np2Evolution.at(partPos) = new TProfile(("np2Evolution"+ parName).c_str(), ("np2Evolution"+ parName).c_str() , 30, -20, 10 ); 
+                       nm1Evolution.at(partPos) = new TProfile(("nm1Evolution"+ parName).c_str(), ("nm1Evolution"+ parName).c_str() , 30, -20, 10 ); 
+                       nm2Evolution.at(partPos) = new TProfile(("nm2Evolution"+ parName).c_str(), ("nm2Evolution"+ parName).c_str() , 30, -20, 10 ); 
+                       nSeedEvolution.at(partPos) = new TProfile(("nSeedEvolution"+ parName).c_str(), ("nSeedEvolution"+ parName).c_str() , 30, -20, 10 ); 
+
+                       np1EvolutionCan.at(partPos) = new TCanvas(("np1EvolutionCan"+ parName).c_str(), ("np1EvolutionCan"+ parName).c_str() ); 
+                       np2EvolutionCan.at(partPos) = new TCanvas(("np2EvolutionCan"+ parName).c_str(), ("np2EvolutionCan"+ parName).c_str()  ); 
+                       nm1EvolutionCan.at(partPos) = new TCanvas(("nm1EvolutionCan"+ parName).c_str(), ("nm1EvolutionCan"+ parName).c_str() ); 
+                       nm2EvolutionCan.at(partPos) = new TCanvas(("nm2EvolutionCan"+ parName).c_str(), ("nm2EvolutionCan"+ parName).c_str()  ); 
+                       nSeedEvolutionCan.at(partPos) = new TCanvas(("nSeedEvolutionCan"+ parName).c_str(), ("nSeedEvolutionCan"+ parName).c_str() ); 
+
 		       beta.at(partPos)=  new TH1F(("beta"+ parName).c_str(), ("beta"+ parName).c_str() , 100, -10, 10 ) ;
-		       chargePerUnit.at(partPos)=  new TProfile(("chargePerUnit"+ parName).c_str(), ("chargePerUnit"+ parName).c_str() , 200, -100, 100 ) ;
+		       chargePerUnit.at(partPos)=  new TProfile(("chargePerUnit"+ parName).c_str(), ("chargePerUnit"+ parName).c_str() , 15, -20, 10 ) ;
 		       chargePerUnitGlobal.at(partPos)=  new TProfile(("chargePerUnitGlobal"+ parName).c_str(), ("chargePerUnitGlobal"+ parName).c_str() , 200, -100, 100 ) ;
 		       chargePerUnitTracker.at(partPos)=  new TProfile(("chargePerUnitTracker"+ parName).c_str(), ("chargePerUnitTracker"+ parName).c_str() , 200, -100, 100 ) ;
 		       chargePerUnitBeta.at(partPos)=  new TProfile(("chargePerUnitBeta"+ parName).c_str(), ("chargePerUnitBeta"+ parName).c_str() , 200, -100, 100 ) ;
@@ -1036,6 +1131,7 @@ Modified_tdr_style();
                        //time  = subCTCmbtimeVtxr.at(clusterStart); 
                        //timeErr  = subCTCmbtimeVtxrErr.at(clusterStart); 
                        time  = subCTCmbtimeVtx.at(clusterStart); 
+                       timeNotZCorr = time;
                        timeErr  = subCTCmbtimeVtxErr.at(clusterStart); 
                        if( hem == 1 ) //@MJ@ TODO -first z-correction and then TOF correction
                        {
@@ -1111,9 +1207,14 @@ Modified_tdr_style();
                    //    continue;
 
                    //@MJ@ TODO time re-calculation
-                   time -= 0.0782391*distVtx; //all tracks
+                   //time -= 0.0666899*distVtx; //all tracks
                    //time -= 0.0897779*distVtx; //not tracker tracks
                    //time -= 0.121289*distVtx; //tracker tracks
+
+                   time -= 0.0482406*distVtx; //all tracks charge everywhere
+
+//p0                        =     -7.85364   +/-   0.438014
+//p1                        =    0.0482406   +/-   0.00954462
 
                    if( ((muTrack == "muTop" && subCTMuOrigin.at(clusterStart) ==1) ||  (muTrack == "muBottom" && subCTMuOrigin.at(clusterStart) ==2)) /*&& distVtx<20*/ ) //if(subclusterlayerwheel.at(m) == 3)
 
@@ -1134,13 +1235,13 @@ Modified_tdr_style();
                            //            continue;
                            //    }
                            
-                           vnrOfHitsVsError.at(partPos)->Fill(timeErr, subCTnrOfMuHits.at(clusterStart));
-                           nrOfSectorsVsError.at(partPos)->Fill( timeErr, subCTsectorsOfDT.at(clusterStart));
-                           chargeVsFreeInverseBeta.at(partPos)->Fill( subCTMuonCombinedFreeInverseBeta.at(clusterStart), subCTstripChargeTotCharge.at(clusterStart) );
-                           width.at(partPos)->Fill(time , subCTstripChargeTotWidth.at(clusterStart));
-                           widthAsCosPhi.at(partPos)->Fill(  cos(subCTstripChargeLocalTrackPhi.at(clusterStart)) , subCTstripChargeTotWidth.at(clusterStart));
+                           //vnrOfHitsVsError.at(partPos)->Fill(timeErr, subCTnrOfMuHits.at(clusterStart));
+                          // nrOfSectorsVsError.at(partPos)->Fill( timeErr, subCTsectorsOfDT.at(clusterStart));
+                           //chargeVsFreeInverseBeta.at(partPos)->Fill( subCTMuonCombinedFreeInverseBeta.at(clusterStart), subCTstripChargeTotCharge.at(clusterStart) );
+                           //width.at(partPos)->Fill(time , subCTstripChargeTotWidth.at(clusterStart));
+                           //widthAsCosPhi.at(partPos)->Fill(  cos(subCTstripChargeLocalTrackPhi.at(clusterStart)) , subCTstripChargeTotWidth.at(clusterStart));
                            charge.at(partPos)->Fill(time, subCTstripChargeTotCharge.at(clusterStart));
-                           chargePerUnit.at(partPos)->Fill(time, subCTstripChargeSeedChargeRescaled.at(clusterStart));
+                           chargePerUnit.at(partPos)->Fill(timeNotZCorr, subCTstripChargeSeedChargeRescaled.at(clusterStart));
                            if(subCTmuonsIsGlobal.at(clusterStart) ==1)
                                chargePerUnitGlobal.at(partPos)->Fill(time, subCTstripChargeSeedChargeRescaled.at(clusterStart));
                            if(subCTmuonsIsTracker.at(clusterStart) ==1)
@@ -1174,39 +1275,62 @@ Modified_tdr_style();
                                chargePerUnitLayersBeta->Fill(time, subCTstripChargeSeedChargeRescaled.at(clusterStart)) ;
 
                            chargePerUnitHistLayers->Fill( subCTstripChargeSeedChargeRescaled.at(clusterStart)) ;
-                           if(abs(distVtx)<30 && subCTMuonCombinedFreeInverseBeta.at(clusterStart)>0 )
+                           if(abs(distVtx)<20 && subCTMuonCombinedFreeInverseBeta.at(clusterStart)>0 )
                            //if(abs(distVtx)<50 && subCTMuonCombinedFreeInverseBeta.at(clusterStart)>0 )
                            {
-                               chargePerUnitBins.at(partPos).at(0)->Fill(time, subCTstripChargeSeedChargeRescaled.at(clusterStart));
-                               chargePerUnitLayersBins.at(0)->Fill(time, subCTstripChargeSeedChargeRescaled.at(clusterStart));
+                               chargePerUnitBins.at(partPos).at(0)->Fill(timeNotZCorr, subCTstripChargeSeedChargeRescaled.at(clusterStart));
+                               chargePerUnitLayersBins.at(0)->Fill(timeNotZCorr, subCTstripChargeSeedChargeRescaled.at(clusterStart));
                                timeMedian.at(partPos).at(0).push_back(abs(distVtx));
+                               timeMedianLayers.at(0).push_back(abs(distVtx));
                            }
-                           if( abs(distVtx)>30 && abs(distVtx)<60  && subCTMuonCombinedFreeInverseBeta.at(clusterStart)>0  )
+                           if( abs(distVtx)>20 && abs(distVtx)<40  && subCTMuonCombinedFreeInverseBeta.at(clusterStart)>0  )
                            //if( abs(distVtx)>50 && abs(distVtx)<100  && subCTMuonCombinedFreeInverseBeta.at(clusterStart)>0  )
                            {
-                               chargePerUnitBins.at(partPos).at(1)->Fill(time, subCTstripChargeSeedChargeRescaled.at(clusterStart));
-                               chargePerUnitLayersBins.at(1)->Fill(time, subCTstripChargeSeedChargeRescaled.at(clusterStart));
+                               chargePerUnitBins.at(partPos).at(1)->Fill(timeNotZCorr, subCTstripChargeSeedChargeRescaled.at(clusterStart));
+                               chargePerUnitLayersBins.at(1)->Fill(timeNotZCorr, subCTstripChargeSeedChargeRescaled.at(clusterStart));
                                timeMedian.at(partPos).at(1).push_back(abs(distVtx));
+                               timeMedianLayers.at(1).push_back(abs(distVtx));
                            }
-                           if(  abs(distVtx)>60 && abs(distVtx)<90 && subCTMuonCombinedFreeInverseBeta.at(clusterStart)>0 )
+                           if(  abs(distVtx)>40 && abs(distVtx)<60 && subCTMuonCombinedFreeInverseBeta.at(clusterStart)>0 )
                            //if(  abs(distVtx)>100 && abs(distVtx)<120 && subCTMuonCombinedFreeInverseBeta.at(clusterStart)>0 )
                            {
-                               chargePerUnitBins.at(partPos).at(2)->Fill(time, subCTstripChargeSeedChargeRescaled.at(clusterStart));
-                               chargePerUnitLayersBins.at(2)->Fill(time, subCTstripChargeSeedChargeRescaled.at(clusterStart));
+                               chargePerUnitBins.at(partPos).at(2)->Fill(timeNotZCorr, subCTstripChargeSeedChargeRescaled.at(clusterStart));
+                               chargePerUnitLayersBins.at(2)->Fill(timeNotZCorr, subCTstripChargeSeedChargeRescaled.at(clusterStart));
                                timeMedian.at(partPos).at(2).push_back(abs(distVtx));
+                               timeMedianLayers.at(2).push_back(abs(distVtx));
                            }
-                           if( abs(distVtx)>90 && abs(distVtx)<120 && subCTMuonCombinedFreeInverseBeta.at(clusterStart)>0 )
+                           if( abs(distVtx)>60  && abs(distVtx)<80 && subCTMuonCombinedFreeInverseBeta.at(clusterStart)>0 )
                            //if( abs(distVtx)>120 && subCTMuonCombinedFreeInverseBeta.at(clusterStart)>0 )
                            {
-                               chargePerUnitBins.at(partPos).at(3)->Fill(time, subCTstripChargeSeedChargeRescaled.at(clusterStart));
-                               chargePerUnitLayersBins.at(3)->Fill(time, subCTstripChargeSeedChargeRescaled.at(clusterStart));
+                               //cout << " " << endl;
+                               chargePerUnitBins.at(partPos).at(3)->Fill(timeNotZCorr, subCTstripChargeSeedChargeRescaled.at(clusterStart));
+                               chargePerUnitLayersBins.at(3)->Fill(timeNotZCorr, subCTstripChargeSeedChargeRescaled.at(clusterStart));
                                timeMedian.at(partPos).at(3).push_back(abs(distVtx));
+                               timeMedianLayers.at(3).push_back(abs(distVtx));
                            }
-                           localTheta->Fill(subCTstripChargeLocalTrackTheta.at(clusterStart));
-                           localPhi->Fill(subCTstripChargeLocalTrackPhi.at(clusterStart));
+                           //localTheta->Fill(subCTstripChargeLocalTrackTheta.at(clusterStart));
+                           //localPhi->Fill(subCTstripChargeLocalTrackPhi.at(clusterStart));
                                timing.at(partPos)->Fill(time);
                                timingNC.at(partPos)->Fill(timeNotZCorr);
 
+                           //Erics histograms + tree
+                           float path = subCTstripChargeTotCharge.at(clusterStart)/subCTstripChargeTotChargeRescaled.at(clusterStart);
+                           np1Evolution.at(partPos)->Fill(time,(float) subCTstripCharge.at(clusterStart+3)/path );
+                           nm1Evolution.at(partPos)->Fill(time,(float) subCTstripCharge.at(clusterStart+1)/path );
+                           nm2Evolution.at(partPos)->Fill(time,(float) subCTstripCharge.at(clusterStart)/path );
+                           np2Evolution.at(partPos)->Fill(time,(float) subCTstripCharge.at(clusterStart+4)/path );
+                           nSeedEvolution.at(partPos)->Fill(time,(float) subCTstripCharge.at(clusterStart+2)/path );
+                           
+                           eSubdetid = subCTstripChargeSubdetid.at(clusterStart) ;
+                           eLayerWheel = subCTstripChargeLayerwheel.at(clusterStart);
+                           eChn1right = subCTstripCharge.at(clusterStart+3)/path;
+                           eChn2right = subCTstripCharge.at(clusterStart+4)/path;
+                           eChn1left = subCTstripCharge.at(clusterStart+1)/path;
+                           eChn2left = subCTstripCharge.at(clusterStart)/path;
+                           eChSeed = subCTstripCharge.at(clusterStart+2)/path;
+                           eChTot = subCTstripChargeTotChargeRescaled.at(clusterStart);
+                           eTime =  time;
+                           tE.Fill(); 
                   //TODO correct 
                            //distVtx = TMath::Sqrt( TMath::Power( subCTinnerVX.at(clusterStart),2 ) + TMath::Power( subCTinnerVY.at(clusterStart),2 ) + TMath::Power( subCTinnerVZtop.at(clusterStart),2 )  );
                            if(time > -60 && time < 60/* && subCTinnerVZtop.at(clusterStart)> -100 && subCTinnerVZtop.at(clusterStart) < 100*/ ) //avoid mixing!
@@ -1354,7 +1478,7 @@ Modified_tdr_style();
                                        }
                                  }
                                }
-                               timingDirection.at(partPos)->Fill(subCTMuontrackDirection.at(clusterStart));
+                               /*timingDirection.at(partPos)->Fill(subCTMuontrackDirection.at(clusterStart));
                                timeVsVz.at(partPos)->Fill( subCTinnerVZtop.at(clusterStart), time );
                                betaVsVx.at(partPos)->Fill( subCTinnerVX.at(clusterStart), subCTMuonCombinedFreeInverseBeta.at(clusterStart) );
                                betaVsVy.at(partPos)->Fill( subCTinnerVY.at(clusterStart), subCTMuonCombinedFreeInverseBeta.at(clusterStart) );
@@ -1373,29 +1497,10 @@ Modified_tdr_style();
                                innerVZ.at(partPos)->Fill( subCTinnerVZtop.at(clusterStart) );
                                innerVX.at(partPos)->Fill( subCTinnerVX.at(clusterStart) );
                                innerVY.at(partPos)->Fill( subCTinnerVY.at(clusterStart) );
-                               timingError.at(partPos)->Fill(timeErr);
+                               timingError.at(partPos)->Fill(timeErr);*/
                            //}
-                           //if(time > -2 && time < 2) //avoid mixing!
-                           //{
-                               /*if( muTrack == "muTop" && subCTMuOrigin.at(clusterStart) ==1 && hem == 1 && subtsosrhglobalphi.at(m)>0)
-                               {
-                                   if(subCTMuontrackDirection.at(clusterStart) <0 )
-                                       continue;
-                               }*/
-                           
-                               //if(abs(distVtx) < 50)
-
-                               /*if( muTrack == "muTop" && subCTMuOrigin.at(clusterStart) ==1 && hem == -1 && subtsosrhglobalphi.at(m)<0)
-                               {
-                                  if(m%7!=0)
-                                      continue;
-                               }*/
-                           //if(subCTinnerVZtop.at(clusterStart)> -50 && subCTinnerVZtop.at(clusterStart)<50) //distVtx
-                           //if(subCTinnerVZtop.at(clusterStart)< -50 || subCTinnerVZtop.at(clusterStart)>50) //distVtx
-                           //
-                           //
-                           
-                           if(time > -12 && time < -8/* && distVtx<20*/) //avoid mixing!
+                           //-7.85364   +/-   0.438014 
+                           if(time > -10 && time < -6/* && distVtx<20*/) //avoid mixing!
                            {
 			       if(subCTstripCharge.at(clusterStart+1) != -333  )
 				   narrowTrackSharing1Data.at(partPos)->Fill((float) subCTstripCharge.at(clusterStart+1)/subCTstripCharge.at(clusterStart+2));
@@ -1405,8 +1510,40 @@ Modified_tdr_style();
 				   narrowTrackSharing2Data.at(partPos)->Fill( (float) subCTstripCharge.at(clusterStart)/subCTstripCharge.at(clusterStart+2));
 			       if(subCTstripCharge.at(clusterStart+4) != -333)
 				   narrowTrackSharing2Data.at(partPos)->Fill( (float) subCTstripCharge.at(clusterStart+4)/subCTstripCharge.at(clusterStart+2));
+                               if( (subCTstripCharge.at(clusterStart+4) == 0 || subCTstripCharge.at(clusterStart) == 0 ) && parName == "TOB2" )
+                                    cout << " second left " << subCTstripCharge.at(clusterStart) << "first left " << subCTstripCharge.at(clusterStart+1) << " seed " << subCTstripCharge.at(clusterStart+2) << " first right " << subCTstripCharge.at(clusterStart+3) << " second right " << subCTstripCharge.at(clusterStart+4) << endl;
 
                            }
+                           if(time > -10.5 && time < -6.5) //avoid mixing!
+                           {
+			       if(subCTstripCharge.at(clusterStart+1) != -333  )
+				   narrowTrackSharing1DataUp.at(partPos)->Fill((float) subCTstripCharge.at(clusterStart+1)/subCTstripCharge.at(clusterStart+2));
+			       if(subCTstripCharge.at(clusterStart+3) != -333 )
+				   narrowTrackSharing1DataUp.at(partPos)->Fill( (float) subCTstripCharge.at(clusterStart+3)/subCTstripCharge.at(clusterStart+2));
+			       if(subCTstripCharge.at(clusterStart) != -333)
+				   narrowTrackSharing2DataUp.at(partPos)->Fill( (float) subCTstripCharge.at(clusterStart)/subCTstripCharge.at(clusterStart+2));
+			       if(subCTstripCharge.at(clusterStart+4) != -333)
+				   narrowTrackSharing2DataUp.at(partPos)->Fill( (float) subCTstripCharge.at(clusterStart+4)/subCTstripCharge.at(clusterStart+2));
+                               //if( (subCTstripCharge.at(clusterStart+4) == 0 || subCTstripCharge.at(clusterStart) == 0 ) && parName == "TOB2" )
+               //                     cout << " second left " << subCTstripCharge.at(clusterStart) << "first left "subCTstripCharge.at(clusterStart+1) << " seed " << subCTstripCharge.at(clusterStart+2) << " first right " << subCTstripCharge.at(clusterStart+3) << " second right " << subCTstripCharge.at(clusterStart+4) << endl;
+
+                           }
+                           if(time > -9.5 && time < -5.5) //avoid mixing!
+                           {
+			       if(subCTstripCharge.at(clusterStart+1) != -333  )
+				   narrowTrackSharing1DataDown.at(partPos)->Fill((float) subCTstripCharge.at(clusterStart+1)/subCTstripCharge.at(clusterStart+2));
+			       if(subCTstripCharge.at(clusterStart+3) != -333 )
+				   narrowTrackSharing1DataDown.at(partPos)->Fill( (float) subCTstripCharge.at(clusterStart+3)/subCTstripCharge.at(clusterStart+2));
+			       if(subCTstripCharge.at(clusterStart) != -333)
+				   narrowTrackSharing2DataDown.at(partPos)->Fill( (float) subCTstripCharge.at(clusterStart)/subCTstripCharge.at(clusterStart+2));
+			       if(subCTstripCharge.at(clusterStart+4) != -333)
+				   narrowTrackSharing2DataDown.at(partPos)->Fill( (float) subCTstripCharge.at(clusterStart+4)/subCTstripCharge.at(clusterStart+2));
+                               //if( (subCTstripCharge.at(clusterStart+4) == 0 || subCTstripCharge.at(clusterStart) == 0 ) && parName == "TOB2" )
+               //                     cout << " second left " << subCTstripCharge.at(clusterStart) << "first left "subCTstripCharge.at(clusterStart+1) << " seed " << subCTstripCharge.at(clusterStart+2) << " first right " << subCTstripCharge.at(clusterStart+3) << " second right " << subCTstripCharge.at(clusterStart+4) << endl;
+
+                           }
+
+
 
   
             }
@@ -1428,31 +1565,41 @@ Modified_tdr_style();
        dummyCTplot->SetMaximum(1.5*(dummyCTplot->GetMaximum()));
        
        
+       tE.Write(); 
 
 //////////////////////filling
 //     
 //
+//
+
+   vector<int> hcolors = {632, 602, 618, 922, 434,  824, 634, 419, 594, 892  };
        for(uint32_t c= 0; c<canvases.size(); c++ )
        {
            if(narrowTrackSharing1Data.at(c)==NULL || narrowTrackSharing2Data.at(c) == NULL)
                break;
 
-       narrowTrackSharing1Data.at(c)->SetMarkerStyle(kFullCircle);
-       narrowTrackSharing1Data.at(c)->SetMarkerColor(kBlack);
-       narrowTrackSharing2Data.at(c)->SetMarkerStyle(kFullCircle);
-       narrowTrackSharing2Data.at(c)->SetMarkerColor(kBlack);
+       string geometry = ""; 
+      std::size_t found = ((string) narrowTrackSharing1Data.at(c)->GetName()).find("TIB1");
+      if(found!=std::string::npos)
+          geometry = "IB1";
+      found =   ((string) narrowTrackSharing1Data.at(c)->GetName()).find("TIB2");
+      if(found!=std::string::npos)
+          geometry = "IB2";
+      found =   ((string) narrowTrackSharing1Data.at(c)->GetName()).find("TOB2");
+      if(found!=std::string::npos)
+          geometry = "OB2";
+      found =   ((string) narrowTrackSharing1Data.at(c)->GetName()).find("TOB1");
+      if(found!=std::string::npos)
+          geometry = "OB1";
 
-       narrowTrackSharing1Data.at(c)->SetTitle("");
-       narrowTrackSharing2Data.at(c)->SetTitle("");
-
-       narrowTrackSharing1Data.at(c)->GetXaxis()->SetTitle("#eta #pm 1");
-       narrowTrackSharing2Data.at(c)->GetXaxis()->SetTitle("#eta #pm 2");
-
-       narrowTrackSharing1Data.at(c)->SetMaximum(2.0*  narrowTrackSharing1Data.at(c)->GetMaximum());
-       narrowTrackSharing2Data.at(c)->SetMaximum(1.5*  narrowTrackSharing2Data.at(c)->GetMaximum());
 
 
-       narrowTrackSharing1DataCan.at(c)->cd();
+       TLatex text(0.2,0.85, geometry.c_str() );  
+       //hists.at(h)->Draw("*H");
+       //TLatex text(0.2,0.2, "test");  
+       text.SetNDC(kTRUE);
+       //text.Draw("same");
+
       float lowr1 = 0;
       float highr1 = 0;
       float lowr2 = 0;
@@ -1465,9 +1612,77 @@ Modified_tdr_style();
           
           lowr1 = gmax-0.1 ;
           highr1 = gmax+0.1 ;
-          lowr2 = gmax2-0.1 ;
-          highr2 = gmax2+0.1  ;
+          lowr2 = gmax2-0.15 ;
+          highr2 = gmax2+0.15  ;
 
+       chargePerUnitBinsCan.at(c)->cd();
+       float med = 0;
+       //for(uint32_t u=0; u<chargePerUnitBins.at(c).size(); u++)
+       TLegend legb(0.65,0.75,0.95,0.92);
+       for(uint32_t u=0; u<3; u++)
+       {
+           chargePerUnitBins.at(c).at(u)->GetXaxis()->SetTitle("time_{IP}^{InOut} [ns]");
+           chargePerUnitBins.at(c).at(u)->GetYaxis()->SetTitle("cluster seed charge over path [ADC/cm]");
+           chargePerUnitBins.at(c).at(u)->SetTitle("");
+           chargePerUnitBins.at(c).at(u)->SetLineColor(hcolors.at(u+1));
+           chargePerUnitBins.at(c).at(u)->SetMarkerColor(hcolors.at(u+1));
+           chargePerUnitBins.at(c).at(u)->SetStats(kFALSE);
+           cout << "start time emdian " << endl;
+           sort(timeMedian.at(c).at(u).begin(), timeMedian.at(c).at(u).end() );
+           uint32_t half = floor(timeMedian.at(c).at(u).size()/2) ;
+           cout << " size " << timeMedian.at(c).at(u).size() <<  " half  " << half << endl;
+           if(half>0)
+                med = timeMedian.at(c).at(u).at(half);
+           cout << "end time emdian " << endl;
+           if(u==0)
+               chargePerUnitBins.at(c).at(u)->Draw("");
+           else
+               chargePerUnitBins.at(c).at(u)->Draw("same e");
+
+
+
+       TF1* ffitTime  =new TF1("ft1","gaus", -20, 10); //different range for different geometries
+       //ffitTime->SetStats(kFALSE);
+       ffitTime->SetLineColor(hcolors.at(u+1));
+       chargePerUnitBins.at(c).at(u)->Fit(ffitTime, "RL");
+       chargePerUnitBins.at(c).at(u)->SetStats(kFALSE);
+       double fitTime = ffitTime->GetParameter(1);
+       double fitTimeErr = ffitTime->GetParError(1);
+       float whichb = chargePerUnitBinsFit.at(c)->FindBin(med);
+       chargePerUnitBinsFit.at(c)->SetBinContent(whichb ,fitTime);
+       cout << " median " <<  med <<  " point " << whichb << " fit "<< fitTime << endl;
+       chargePerUnitBinsFit.at(c)->SetBinError(whichb ,fitTimeErr);
+       }
+
+       legb.AddEntry( chargePerUnitBins.at(c).at(0)  , "dist<30cm"  , "p");
+       legb.AddEntry( chargePerUnitBins.at(c).at(1)  , "30cm<dist<60cm"  , "p");
+       legb.AddEntry( chargePerUnitBins.at(c).at(2)  , "dist>60cm"  , "p");
+       //leg1.AddEntry( chargePerUnitBins.at(3)  , "all dist"  , "p");
+       legb.Draw("same");
+       text.Draw("same");
+       chargePerUnitBinsCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ chargePerUnitBins.at(c).at(0)->GetName()+(string)part+(string)muTrack+ ".root").c_str());
+       chargePerUnitBinsCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ chargePerUnitBins.at(c).at(0)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
+
+       TF1* linTime  =new TF1("fl1","pol1", 0, 100); //different range for different geometries
+
+       TFitResultPtr fitres = chargePerUnitBinsFit.at(c)->Fit( linTime , "RS"); 
+       chargePerUnitBinsFit.at(c)->GetYaxis()->SetTitle("time_{IP}^{InOut} [cm]");
+       chargePerUnitBinsFit.at(c)->GetXaxis()->SetTitle("track distance to the IP [cm]");
+       cout << chargePerUnitBins.at(c).at(0)->GetName() << "fit" << part << muTrack << endl;
+       TMatrixDSym cov = fitres->GetCovarianceMatrix();
+       double fitp1 = linTime->GetParameter(0);
+       double fitp1Err = linTime->GetParError(0);
+       double fitp2 = linTime->GetParameter(1);
+       double fitp2Err = linTime->GetParError(1);
+       //double totalErr = TMath::Sqrt( (fitp1Err*fitp1Err)+(fitp2Err*fitp2Err)+ cov(0,1)  ); 
+       double totalErr = fitp1Err; 
+       cout << "time correction par1 " << fitp1 << " par1 err  " << fitp1Err << " par2  " << fitp2 << " par2 err " << fitp2Err << " total err " << totalErr << endl;
+       cout << "covariance element " << cov(0,1) << endl;
+       fitres->PrintCovMatrix(cout);
+       chargePerUnitBinsFitCan.at(c)->cd();
+       chargePerUnitBinsFit.at(c)->Draw("e");
+       chargePerUnitBinsFitCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ chargePerUnitBins.at(c).at(0)->GetName()+"fit"+(string)part+(string)muTrack+ ".root").c_str());
+       chargePerUnitBinsFitCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ chargePerUnitBins.at(c).at(0)->GetName()+"fit"+(string)part+(string)muTrack+ ".eps").c_str());
      /*std::size_t found = ((string) narrowTrackSharing1Data.at(c)->GetName()).find("TIB1");
       if(found!=std::string::npos)
       {
@@ -1511,6 +1726,22 @@ Modified_tdr_style();
           lowr2 = -0.05 ;
           highr2 = 0.2 ;
       }*/
+       narrowTrackSharing1Data.at(c)->SetMarkerStyle(kFullCircle);
+       narrowTrackSharing1Data.at(c)->SetMarkerColor(kBlack);
+       narrowTrackSharing2Data.at(c)->SetMarkerStyle(kFullCircle);
+       narrowTrackSharing2Data.at(c)->SetMarkerColor(kBlack);
+
+       narrowTrackSharing1Data.at(c)->SetTitle("");
+       narrowTrackSharing2Data.at(c)->SetTitle("");
+
+       narrowTrackSharing1Data.at(c)->GetXaxis()->SetTitle("#eta_{#pm 1}");
+       narrowTrackSharing2Data.at(c)->GetXaxis()->SetTitle("#eta_{#pm 2}");
+
+       //narrowTrackSharing1Data.at(c)->SetMaximum(1.3*  narrowTrackSharing1Data.at(c)->GetMaximum());
+       //narrowTrackSharing2Data.at(c)->SetMaximum(1.5*  narrowTrackSharing2Data.at(c)->GetMaximum());
+
+
+       narrowTrackSharing1DataCan.at(c)->cd();
        TF1* ffit  =new TF1("f1","gaus", lowr1, highr1); //different range for different geometries
        narrowTrackSharing1Data.at(c)->Fit(ffit, "RL");
        double fitMean = ffit->GetParameter(1);
@@ -1518,11 +1749,13 @@ Modified_tdr_style();
        double fitChi2 = ffit->GetChisquare(); 
        double fitNdof = ffit->GetNDF();
        double fitProb = TMath::Prob(fitChi2, fitNdof  );
+       //gMinuit->mnmatu(1);
        cout << narrowTrackSharing1Data.at(c)->GetName()+(string)part+(string)muTrack << " mean " << fitMean << " +- " << fitMeanErr << " chi2 " << fitChi2 << " ndof " << fitNdof << " prob " << fitProb << endl; 
        cout << " " << endl;
        narrowTrackSharing1Data.at(c)->GetXaxis()->SetRangeUser(-0.2, 0.5);
        narrowTrackSharing1Data.at(c)->GetYaxis()->SetTitle("twice # of clusters");
        narrowTrackSharing1Data.at(c)->Draw(""); 
+       text.Draw("same");
        //ffit->Draw("same"); 
        narrowTrackSharing1DataCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ narrowTrackSharing1Data.at(c)->GetName()+(string)part+(string)muTrack+ ".root").c_str());
        narrowTrackSharing1DataCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ narrowTrackSharing1Data.at(c)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
@@ -1544,6 +1777,7 @@ Modified_tdr_style();
        narrowTrackSharing2Data.at(c)->GetXaxis()->SetRangeUser(-0.2, 0.4);
        narrowTrackSharing2Data.at(c)->GetYaxis()->SetTitle("twice # of clusters");
        narrowTrackSharing2Data.at(c)->Draw("");
+       text.Draw("same");
        narrowTrackSharing2DataCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ narrowTrackSharing2Data.at(c)->GetName()+(string)part+(string)muTrack + ".root").c_str());
        narrowTrackSharing2DataCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ narrowTrackSharing2Data.at(c)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
 
@@ -1560,8 +1794,73 @@ Modified_tdr_style();
    cout << "x1 " << eta1Val << " +- " << eta1ErrVal << endl;
    cout << "x2 " << eta2Val << " +- " << eta2ErrVal << endl;
 
+       narrowTrackSharing1DataUp.at(c)->Fit(ffit, "RL");
+       double fitMeanUp = ffit->GetParameter(1);
+       double fitMeanErrUp = ffit->GetParError(1);
+       double fitChi2Up = ffit->GetChisquare(); 
+       double fitNdofUp = ffit->GetNDF();
+       double fitProbUp = TMath::Prob(fitChi2Up, fitNdofUp  );
+       cout << narrowTrackSharing1DataUp.at(c)->GetName()+(string)part+(string)muTrack << " mean up " << fitMeanUp << " +- " << fitMeanErrUp << " chi2 " << fitChi2Up << " ndof " << fitNdofUp << " prob " << fitProbUp << endl; 
+       cout << " " << endl;
 
-       widthCan.at(c)->cd();
+       narrowTrackSharing2DataUp.at(c)->Fit(ffit2, "RL");
+       double fitMean2Up = ffit2->GetParameter(1);
+       double fitMeanErr2Up = ffit2->GetParError(1);
+       double fitChi22Up = ffit2->GetChisquare(); 
+       double fitNdof2Up = ffit2->GetNDF();
+       double fitProb2Up = TMath::Prob(fitChi22Up, fitNdof2Up  );
+       cout << narrowTrackSharing2DataUp.at(c)->GetName()+(string)part+(string)muTrack << " mean " << fitMean2Up << " +- " << fitMeanErr2Up << " chi2 " << fitChi22Up << " ndof " << fitNdof2Up << " prob " << fitProb2Up << endl; 
+       cout << " " << endl;
+
+   double eta1ValUp = eta1(fitMeanUp, fitMean2Up);
+   double eta1ErrValUp = eta1Err(fitMeanUp, fitMeanErrUp, fitMean2Up, fitMeanErr2Up );
+   double eta2ValUp = eta2(fitMeanUp, fitMean2Up );
+   double eta2ErrValUp = eta2Err( fitMeanUp, fitMeanErrUp, fitMean2Up, fitMeanErr2Up );
+
+   double eta0ValUp = eta0( eta1ValUp, eta2ValUp );
+   double eta0ErrValUp = eta0Err( eta1ErrValUp , eta2ErrValUp );
+
+   cout << "x0 up " << eta0ValUp << " +- " << eta0ErrValUp << endl;
+   cout << "x1 up " << eta1ValUp << " +- " << eta1ErrValUp << endl;
+   cout << "x2 up " << eta2ValUp << " +- " << eta2ErrValUp << endl;
+
+       narrowTrackSharing1DataDown.at(c)->Fit(ffit, "RL");
+       double fitMeanDown = ffit->GetParameter(1);
+       double fitMeanErrDown = ffit->GetParError(1);
+       double fitChi2Down = ffit->GetChisquare(); 
+       double fitNdofDown = ffit->GetNDF();
+       double fitProbDown = TMath::Prob(fitChi2Down, fitNdofDown  );
+       cout << narrowTrackSharing1DataDown.at(c)->GetName()+(string)part+(string)muTrack << " mean up " << fitMeanDown << " +- " << fitMeanErrDown << " chi2 " << fitChi2Down << " ndof " << fitNdofDown << " prob " << fitProbDown << endl; 
+       cout << " " << endl;
+
+       narrowTrackSharing2DataDown.at(c)->Fit(ffit2, "RL");
+       double fitMean2Down = ffit2->GetParameter(1);
+       double fitMeanErr2Down = ffit2->GetParError(1);
+       double fitChi22Down = ffit2->GetChisquare(); 
+       double fitNdof2Down = ffit2->GetNDF();
+       double fitProb2Down = TMath::Prob(fitChi22Down, fitNdof2Down  );
+       cout << narrowTrackSharing2DataDown.at(c)->GetName()+(string)part+(string)muTrack << " mean " << fitMean2Down << " +- " << fitMeanErr2Down << " chi2 " << fitChi22Down << " ndof " << fitNdof2Down << " prob " << fitProb2Down << endl; 
+       cout << " " << endl;
+
+   double eta1ValDown = eta1(fitMeanDown, fitMean2Down);
+   double eta1ErrValDown = eta1Err(fitMeanDown, fitMeanErrDown, fitMean2Down, fitMeanErr2Down );
+   double eta2ValDown = eta2(fitMeanDown, fitMean2Down );
+   double eta2ErrValDown = eta2Err( fitMeanDown, fitMeanErrDown, fitMean2Down, fitMeanErr2Down );
+
+   double eta0ValDown = eta0( eta1ValDown, eta2ValDown );
+   double eta0ErrValDown = eta0Err( eta1ErrValDown , eta2ErrValDown );
+
+   cout << "x0 down " << eta0ValDown << " +- " << eta0ErrValDown << endl;
+   cout << "x1 down " << eta1ValDown << " +- " << eta1ErrValDown << endl;
+   cout << "x2 down " << eta2ValDown << " +- " << eta2ErrValDown << endl;
+
+   cout << " " << endl;
+   cout << "x0 final " << eta0Val << " +- " << TMath::Sqrt( TMath::Power(eta0ErrVal,2) + TMath::Power(abs(eta0ValDown-eta0ValUp)/2 , 2) ) << endl;
+   cout << "x1 final " << eta1Val << " +- " << TMath::Sqrt( TMath::Power(eta1ErrVal,2) + TMath::Power(abs(eta1ValDown-eta1ValUp)/2 , 2) ) << endl;
+   cout << "x2 final " << eta2Val << " +- " << TMath::Sqrt( TMath::Power(eta2ErrVal,2) + TMath::Power(abs(eta2ValDown-eta2ValUp)/2 , 2) ) << endl;
+   
+   
+/*       widthCan.at(c)->cd();
        width.at(c)->GetXaxis()->SetTitle("time");
        width.at(c)->GetYaxis()->SetTitle("cluster width");
        width.at(c)->Draw("");
@@ -1581,18 +1880,26 @@ Modified_tdr_style();
        charge.at(c)->Draw("");
        chargeCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ charge.at(c)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
        chargeCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ charge.at(c)->GetName()+(string)part+(string)muTrack+ ".root").c_str());
-
+*/
        chargePerUnitCan.at(c)->cd();
-       chargePerUnit.at(c)->GetXaxis()->SetTitle("time");
-       chargePerUnit.at(c)->GetYaxis()->SetTitle("cluster seed charge rescaled");
+       chargePerUnit.at(c)->GetXaxis()->SetTitle("time_{IP}^{InOut} [ns]");
+       chargePerUnit.at(c)->GetYaxis()->SetTitle("cluster seed charge over path [ADC/cm]");
+       chargePerUnit.at(c)->SetTitle("");
        chargePerUnit.at(c)->SetLineColor(kBlack);
+       chargePerUnit.at(c)->SetMarkerColor(kBlack);
+       TF1* ffitTime1  =new TF1("ft11","gaus", -20, 10); //different range for different geometries
+       ffitTime1->SetLineColor(kRed);
+       chargePerUnit.at(c)->Fit(ffitTime1, "RL");
+       double fitTime1 = ffitTime1->GetParameter(1);
+       double fitTimeErr1 = ffitTime1->GetParError(1);
        chargePerUnit.at(c)->Draw("");
-       chargePerUnitGlobal.at(c)->SetLineColor(kGreen);
+       text.Draw("same");
+      /* chargePerUnitGlobal.at(c)->SetLineColor(kGreen);
        chargePerUnitGlobal.at(c)->Draw("same");
        chargePerUnitTracker.at(c)->SetLineColor(kRed);
        chargePerUnitTracker.at(c)->Draw("same");
        chargePerUnitBeta.at(c)->SetLineColor(kBlue);
-       chargePerUnitBeta.at(c)->Draw("same");
+       chargePerUnitBeta.at(c)->Draw("same");*/
        chargePerUnitCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ chargePerUnit.at(c)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
        chargePerUnitCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ chargePerUnit.at(c)->GetName()+(string)part+(string)muTrack+ ".root").c_str());
 
@@ -1638,8 +1945,42 @@ Modified_tdr_style();
        timingDirectionCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ timingDirection.at(c)->GetName()+(string)part+(string)muTrack+ ".root").c_str());
        timingDirectionCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ timingDirection.at(c)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
 
+       np1EvolutionCan.at(c)->cd();
+       np1Evolution.at(c)->GetXaxis()->SetTitle("time");
+       np1Evolution.at(c)->GetYaxis()->SetTitle("1st neighbor on the right ch.");
+       np1Evolution.at(c)->Draw("hist e");
+       np1EvolutionCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ np1Evolution.at(c)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
+       np1EvolutionCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ np1Evolution.at(c)->GetName()+(string)part+(string)muTrack+ ".root").c_str());
 
-       TCanvas* cvs = new TCanvas("chargeThroughTrackerc", "chargeThroughTrackerc");
+       np2EvolutionCan.at(c)->cd();
+       np2Evolution.at(c)->GetXaxis()->SetTitle("time");
+       np2Evolution.at(c)->GetYaxis()->SetTitle("2nd neighbor on the right ch.");
+       np2Evolution.at(c)->Draw("hist e");
+       np2EvolutionCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ np2Evolution.at(c)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
+       np2EvolutionCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ np2Evolution.at(c)->GetName()+(string)part+(string)muTrack+ ".root").c_str());
+
+       nm1EvolutionCan.at(c)->cd();
+       nm1Evolution.at(c)->GetXaxis()->SetTitle("time");
+       nm1Evolution.at(c)->GetYaxis()->SetTitle("1st neighbor on the left ch.");
+       nm1Evolution.at(c)->Draw("hist e");
+       nm1EvolutionCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ nm1Evolution.at(c)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
+       nm1EvolutionCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ nm1Evolution.at(c)->GetName()+(string)part+(string)muTrack+ ".root").c_str());
+
+       nm2EvolutionCan.at(c)->cd();
+       nm2Evolution.at(c)->GetXaxis()->SetTitle("time");
+       nm2Evolution.at(c)->GetYaxis()->SetTitle("2nd neighbor on the left ch.");
+       nm2Evolution.at(c)->Draw("hist e");
+       nm2EvolutionCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ nm2Evolution.at(c)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
+       nm2EvolutionCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ nm2Evolution.at(c)->GetName()+(string)part+(string)muTrack+ ".root").c_str());
+
+       nSeedEvolutionCan.at(c)->cd();
+       nSeedEvolution.at(c)->GetXaxis()->SetTitle("time");
+       nSeedEvolution.at(c)->GetYaxis()->SetTitle("seed ch.");
+       nSeedEvolution.at(c)->Draw("hist e");
+       nSeedEvolutionCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ nSeedEvolution.at(c)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
+       nSeedEvolutionCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ nSeedEvolution.at(c)->GetName()+(string)part+(string)muTrack+ ".root").c_str());
+
+       /*TCanvas* cvs = new TCanvas("chargeThroughTrackerc", "chargeThroughTrackerc");
        chargeThroughTracker->GetXaxis()->SetTitle("layer from top to bottom");
        chargeThroughTracker->SetTitle("");
        chargeThroughTracker->Draw("hist e"); 
@@ -1707,7 +2048,7 @@ Modified_tdr_style();
        chargeVsFreeInverseBeta.at(c)->Draw("colz"); 
        chargeVsFreeInverseBetaCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ chargeVsFreeInverseBeta.at(c)->GetName()+(string)part+(string)muTrack+ ".root").c_str());
        chargeVsFreeInverseBetaCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ chargeVsFreeInverseBeta.at(c)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
-
+*/
        etaOneaAsVzCan.at(c)->cd();
        etaOneaAsVz.at(c)->GetXaxis()->SetTitle("vz");
        etaOneaAsVz.at(c)->GetYaxis()->SetTitle("eta #pm 1");
@@ -1716,7 +2057,7 @@ Modified_tdr_style();
        etaOneaAsVzCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ etaOneaAsVz.at(c)->GetName()+(string)part+(string)muTrack+ ".root").c_str());
 
 
-       timeVsVzCan.at(c)->cd();
+       /*timeVsVzCan.at(c)->cd();
        timeVsVz.at(c)->GetXaxis()->SetTitle("vz");
        timeVsVz.at(c)->GetYaxis()->SetTitle("time");
        timeVsVz.at(c)->Draw("");
@@ -1759,7 +2100,7 @@ Modified_tdr_style();
        betaVsTime.at(c)->Draw("");
        betaVsTimeCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ betaVsTime.at(c)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
        betaVsTimeCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ betaVsTime.at(c)->GetName()+(string)part+(string)muTrack+ ".root").c_str());
-
+*/
 
        for(uint32_t j=0; j<120; j++)
        {
@@ -1778,8 +2119,8 @@ Modified_tdr_style();
 		  
 		  lowr1 = gmax-0.1 ;
 		  highr1 = gmax+0.1 ;
-		  lowr2 = gmax2-0.1 ;
-		  highr2 = gmax2+0.1  ;
+		  lowr2 = gmax2-0.15 ;
+		  highr2 = gmax2+0.15  ;
               TCanvas* canTest = new TCanvas("ct", "ct");
               canTest->cd();
               cout << "fitting " << endl;
@@ -1788,10 +2129,12 @@ Modified_tdr_style();
               double fitMeanEta = ffiteta->GetParameter(1);
               double fitMeanEtaErr = ffiteta->GetParError(1);
               cout << "binned fit bin " << (string)part+(string)muTrack+ "bin" +to_string( etaOneaAsTime.at(c)->GetBinLowEdge(j+1)) << "mean " << fitMeanEta << "+-" << fitMeanEtaErr << endl;
-              if(j>2) 
+              if(j>0) 
               {
-                  etaOneaAsTime.at(c)->SetBinContent(j-2, fitMeanEta );
-                  etaOneaAsTime.at(c)->SetBinError(j-2, fitMeanEtaErr );
+                  cout << "binned fit bin " << (string)part+(string)muTrack+ "bin" +to_string( etaOneaAsTime.at(c)->GetBinLowEdge(j)) << "mean " << fitMeanEta << "+-" << fitMeanEtaErr << endl;
+                  etaOneaAsTime.at(c)->SetBinContent(j, fitMeanEta );
+                  //cout << "etapmone " << " bin  " << j-2 << " position  " << etaOneaAsTime.at(c)->GetBinLowEdge(j+1) 
+                  etaOneaAsTime.at(c)->SetBinError(j, fitMeanEtaErr );
               }
               canTest->SaveAs(("output/"+(string)dir+"/"+ etaOneaAsTime.at(c)->GetName()+(string)part+(string)muTrack+ "bin" +to_string( etaOneaAsTime.at(c)->GetBinLowEdge(j+1)) + ".eps").c_str());
               canTest->SaveAs(("output/"+(string)dir+"/"+ etaOneaAsTime.at(c)->GetName()+(string)part+(string)muTrack+ "bin" +to_string( etaOneaAsTime.at(c)->GetBinLowEdge(j+1)) + ".root").c_str());
@@ -1801,9 +2144,10 @@ Modified_tdr_style();
        etaOneaAsTimeCan.at(c)->cd();
        etaOneaAsTime.at(c)->SetTitle("");
        etaOneaAsTime.at(c)->GetXaxis()->SetTitle("time_{IP}^{InOut} [ns]");
-       etaOneaAsTime.at(c)->GetXaxis()->SetRangeUser(-20,10);
-       etaOneaAsTime.at(c)->GetYaxis()->SetTitle("#eta #pm 1");
+       etaOneaAsTime.at(c)->GetXaxis()->SetRangeUser(-15,5);
+       etaOneaAsTime.at(c)->GetYaxis()->SetTitle("#eta_{#pm 1}");
        etaOneaAsTime.at(c)->Draw("");
+       text.Draw("same");
        etaOneaAsTimeCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ etaOneaAsTime.at(c)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
        etaOneaAsTimeCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ etaOneaAsTime.at(c)->GetName()+(string)part+(string)muTrack+ ".root").c_str());
 
@@ -1823,17 +2167,17 @@ Modified_tdr_style();
 		  
 		  lowr1 = gmax-0.1 ;
 		  highr1 = gmax+0.1 ;
-		  lowr2 = gmax2-0.1 ;
-		  highr2 = gmax2+0.1  ;
+		  lowr2 = gmax2-0.15 ;
+		  highr2 = gmax2+0.15  ;
               TF1* ffiteta  =new TF1("feta","gaus", lowr2, highr2); //different range for different geometries
               narrowTrackSharing2DataEvolution.at(c).at(j)->Fit(ffiteta, "RL");
               double fitMeanEta = ffiteta->GetParameter(1);
               double fitMeanEtaErr = ffiteta->GetParError(1);
-              cout << "binned fit bin " << (string)part+(string)muTrack+ "bin" +to_string( etaTwoAsTime.at(c)->GetBinLowEdge(j+1)) << "mean " << fitMeanEta << "+-" << fitMeanEtaErr << endl;
-              if(j>2) 
+              if(j>0) 
               {
-                  etaTwoAsTime.at(c)->SetBinContent(j-2, fitMeanEta );
-                  etaTwoAsTime.at(c)->SetBinError(j-2, fitMeanEtaErr );
+                  cout << "binned fit bin " << (string)part+(string)muTrack+ "bin" +to_string( etaTwoAsTime.at(c)->GetBinLowEdge(j)) << "mean " << fitMeanEta << "+-" << fitMeanEtaErr << endl;
+                  etaTwoAsTime.at(c)->SetBinContent(j, fitMeanEta );
+                  etaTwoAsTime.at(c)->SetBinError(j, fitMeanEtaErr );
               }
            }
        }
@@ -1841,9 +2185,10 @@ Modified_tdr_style();
        etaTwoAsTimeCan.at(c)->cd();
        etaTwoAsTime.at(c)->SetTitle("");
        etaTwoAsTime.at(c)->GetXaxis()->SetTitle("time_{IP}^{InOut} [ns]");
-       etaTwoAsTime.at(c)->GetYaxis()->SetTitle("#eta #pm 2");
-       etaTwoAsTime.at(c)->GetXaxis()->SetRangeUser(-20,10);
+       etaTwoAsTime.at(c)->GetYaxis()->SetTitle("#eta_{#pm 2}");
+       etaTwoAsTime.at(c)->GetXaxis()->SetRangeUser(-15,5);
        etaTwoAsTime.at(c)->Draw("");
+       text.Draw("same");
        etaTwoAsTimeCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ etaTwoAsTime.at(c)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
        etaTwoAsTimeCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ etaTwoAsTime.at(c)->GetName()+(string)part+(string)muTrack+ ".root").c_str());
 
@@ -1885,7 +2230,7 @@ Modified_tdr_style();
        xtZero.at(c)->SetTitle("");
        xtZero.at(c)->GetXaxis()->SetTitle("time_{IP}^{InOut} [ns]");
        xtZero.at(c)->GetYaxis()->SetTitle("x_0");
-       xtZero.at(c)->GetXaxis()->SetRangeUser(-20,10);
+       xtZero.at(c)->GetXaxis()->SetRangeUser(-15,10);
        xtZero.at(c)->Draw("");
        xtZeroCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ xtZero.at(c)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
        xtZeroCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ xtZero.at(c)->GetName()+(string)part+(string)muTrack+ ".root").c_str());
@@ -1894,7 +2239,7 @@ Modified_tdr_style();
        xtOne.at(c)->SetTitle("");
        xtOne.at(c)->GetXaxis()->SetTitle("time_{IP}^{InOut} [ns]");
        xtOne.at(c)->GetYaxis()->SetTitle("x_1");
-       xtOne.at(c)->GetXaxis()->SetRangeUser(-20,10);
+       xtOne.at(c)->GetXaxis()->SetRangeUser(-15,10);
        xtOne.at(c)->Draw("");
        xtOneCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ xtOne.at(c)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
        xtOneCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ xtOne.at(c)->GetName()+(string)part+(string)muTrack+ ".root").c_str());
@@ -1903,7 +2248,7 @@ Modified_tdr_style();
        xtTwo.at(c)->SetTitle("");
        xtTwo.at(c)->GetXaxis()->SetTitle("time_{IP}^{InOut} [ns]");
        xtTwo.at(c)->GetYaxis()->SetTitle("x_1");
-       xtTwo.at(c)->GetXaxis()->SetRangeUser(-20,10);
+       xtTwo.at(c)->GetXaxis()->SetRangeUser(-15,10);
        xtTwo.at(c)->Draw("");
        xtTwoCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ xtTwo.at(c)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
        xtTwoCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ xtTwo.at(c)->GetName()+(string)part+(string)muTrack+ ".root").c_str());
@@ -1927,8 +2272,8 @@ Modified_tdr_style();
 		  
 		  lowr1 = gmax-0.1 ;
 		  highr1 = gmax+0.1 ;
-		  lowr2 = gmax2-0.1 ;
-		  highr2 = gmax2+0.1  ;
+		  lowr2 = gmax2-0.15 ;
+		  highr2 = gmax2+0.15  ;
               TF1* ffiteta  =new TF1("feta","gaus",lowr1, highr1); //different range for different geometries
               narrowTrackSharing1DataEvolutionDist.at(c).at(j)->Fit(ffiteta, "RL");
               double fitMeanEta = ffiteta->GetParameter(1);
@@ -1975,8 +2320,8 @@ Modified_tdr_style();
 		  
 		  lowr1 = gmax-0.1 ;
 		  highr1 = gmax+0.1 ;
-		  lowr2 = gmax2-0.1 ;
-		  highr2 = gmax2+0.1  ;
+		  lowr2 = gmax2-0.15 ;
+		  highr2 = gmax2+0.15  ;
               cout << "fitting " << endl;
               TF1* ffiteta  =new TF1("feta","gaus",lowr2, highr2 ); //different range for different geometries
               narrowTrackSharing2DataEvolutionDist.at(c).at(j)->Fit(ffiteta, "RL");
@@ -2015,7 +2360,7 @@ Modified_tdr_style();
 */
 
        etaOneaAsTimeLayerCan.at(c)->cd();
-       TLegend leg2a(0.6,0.1,0.95,0.3);
+       TLegend leg2a(0.58,0.20,0.93,0.40);
        for(uint32_t j=0; j<120; j++)
        {
 	  int ne=  narrowTrackSharing1DataEvolutionL1.at(c).at(j)->GetEntries();
@@ -2023,74 +2368,75 @@ Modified_tdr_style();
 	  {
 		  gmaxbin = narrowTrackSharing1DataEvolutionL1.at(c).at(j)->GetMaximumBin();
 		  gmax = narrowTrackSharing1DataEvolutionL1.at(c).at(j)->GetBinCenter(gmaxbin);
-		  gmaxbin2 = narrowTrackSharing1DataEvolutionL1.at(c).at(j)->GetMaximumBin();
-		  gmax2 = narrowTrackSharing1DataEvolutionL1.at(c).at(j)->GetBinCenter(gmaxbin2);
-		  
+		  gmaxbin2 = narrowTrackSharing2DataEvolutionL1.at(c).at(j)->GetMaximumBin();
+		  gmax2 = narrowTrackSharing2DataEvolutionL1.at(c).at(j)->GetBinCenter(gmaxbin2);
+
 		  lowr1 = gmax-0.1 ;
 		  highr1 = gmax+0.1 ;
-		  lowr2 = gmax2-0.1 ;
-		  highr2 = gmax2+0.1  ;
+		  lowr2 = gmax2-0.15 ;
+		  highr2 = gmax2+0.15  ;
 	      cout << "fitting " << endl;
 	      TF1* ffiteta  =new TF1("feta","gaus", lowr1, highr1); //different range for different geometries
 	      narrowTrackSharing1DataEvolutionL1.at(c).at(j)->Fit(ffiteta, "RL");
 	      double fitMeanEta = ffiteta->GetParameter(1);
 	      double fitMeanEtaErr = ffiteta->GetParError(1);
 	      cout << "binned fit bin " << (string)part+(string)muTrack+ "bin" +to_string( etaOneaAsTimeLayer.at(c).at(0)->GetBinLowEdge(j+1)) << "mean " << fitMeanEta << "+-" << fitMeanEtaErr << endl;
-	      if(j>3) 
+	      if(j>4) 
 	      {
-		  etaOneaAsTimeLayer.at(c).at(0)->SetBinContent(j-3, fitMeanEta );
-		  etaOneaAsTimeLayer.at(c).at(0)->SetBinError(j-3, fitMeanEtaErr );
+		  etaOneaAsTimeLayer.at(c).at(0)->SetBinContent(j-1, fitMeanEta );
+		  etaOneaAsTimeLayer.at(c).at(0)->SetBinError(j-1, fitMeanEtaErr );
 	      }
 	      narrowTrackSharing1DataEvolutionL2.at(c).at(j)->Fit(ffiteta, "RL");
 	      fitMeanEta = ffiteta->GetParameter(1);
 	      fitMeanEtaErr = ffiteta->GetParError(1);
 	      cout << "binned fit bin " << (string)part+(string)muTrack+ "bin" +to_string( etaOneaAsTimeLayer.at(c).at(1)->GetBinLowEdge(j+1)) << "mean " << fitMeanEta << "+-" << fitMeanEtaErr << endl;
-	      if(j>3) 
+	      if(j>4) 
 	      {
-		  etaOneaAsTimeLayer.at(c).at(1)->SetBinContent(j-3, fitMeanEta );
-		  etaOneaAsTimeLayer.at(c).at(1)->SetBinError(j-3, fitMeanEtaErr );
+		  etaOneaAsTimeLayer.at(c).at(1)->SetBinContent(j-1, fitMeanEta );
+		  etaOneaAsTimeLayer.at(c).at(1)->SetBinError(j-1, fitMeanEtaErr );
 	      }
 	      narrowTrackSharing1DataEvolutionL3.at(c).at(j)->Fit(ffiteta, "RL");
 	      fitMeanEta = ffiteta->GetParameter(1);
 	      fitMeanEtaErr = ffiteta->GetParError(1);
 	      cout << "binned fit bin " << (string)part+(string)muTrack+ "bin" +to_string( etaOneaAsTimeLayer.at(c).at(2)->GetBinLowEdge(j+1)) << "mean " << fitMeanEta << "+-" << fitMeanEtaErr << endl;
-	      if(j>3) 
+	      if(j>4) 
 	      {
-		  etaOneaAsTimeLayer.at(c).at(2)->SetBinContent(j-3, fitMeanEta );
-		  etaOneaAsTimeLayer.at(c).at(2)->SetBinError(j-3, fitMeanEtaErr );
+		  etaOneaAsTimeLayer.at(c).at(2)->SetBinContent(j-1, fitMeanEta );
+		  etaOneaAsTimeLayer.at(c).at(2)->SetBinError(j-1, fitMeanEtaErr );
 	      }
 	      narrowTrackSharing1DataEvolutionL4.at(c).at(j)->Fit(ffiteta, "RL");
 	      fitMeanEta = ffiteta->GetParameter(1);
 	      fitMeanEtaErr = ffiteta->GetParError(1);
 	      cout << "binned fit bin " << (string)part+(string)muTrack+ "bin" +to_string( etaOneaAsTimeLayer.at(c).at(3)->GetBinLowEdge(j+1)) << "mean " << fitMeanEta << "+-" << fitMeanEtaErr << endl;
-	      if(j>3) 
+	      if(j>4) 
 	      {
-		  etaOneaAsTimeLayer.at(c).at(3)->SetBinContent(j-3, fitMeanEta );
-		  etaOneaAsTimeLayer.at(c).at(3)->SetBinError(j-3, fitMeanEtaErr );
+		  etaOneaAsTimeLayer.at(c).at(3)->SetBinContent(j-1, fitMeanEta );
+		  etaOneaAsTimeLayer.at(c).at(3)->SetBinError(j-1, fitMeanEtaErr );
 	      }
 	   }
        }
 
        etaOneaAsTimeLayer.at(c).at(0)->SetTitle("");
        etaOneaAsTimeLayer.at(c).at(0)->GetXaxis()->SetTitle("time_{IP}^{InOut} [ns]");
-       etaOneaAsTimeLayer.at(c).at(0)->GetXaxis()->SetRangeUser(-20,10);
-       etaOneaAsTimeLayer.at(c).at(0)->GetYaxis()->SetTitle("#eta #pm 1");
-       etaOneaAsTimeLayer.at(c).at(0)->SetLineColor(1);
-       etaOneaAsTimeLayer.at(c).at(1)->SetLineColor(2);
-       etaOneaAsTimeLayer.at(c).at(2)->SetLineColor(3);
-       etaOneaAsTimeLayer.at(c).at(3)->SetLineColor(4);
-       etaOneaAsTimeLayer.at(c).at(0)->SetMarkerColor(1);
-       etaOneaAsTimeLayer.at(c).at(1)->SetMarkerColor(2);
-       etaOneaAsTimeLayer.at(c).at(2)->SetMarkerColor(3);
-       etaOneaAsTimeLayer.at(c).at(3)->SetMarkerColor(4);
+       etaOneaAsTimeLayer.at(c).at(0)->GetXaxis()->SetRangeUser(-15,5);
+       etaOneaAsTimeLayer.at(c).at(0)->GetYaxis()->SetTitle("#eta_{#pm 1}");
+       etaOneaAsTimeLayer.at(c).at(0)->SetLineColor(hcolors.at(1));
+       etaOneaAsTimeLayer.at(c).at(1)->SetLineColor(hcolors.at(2));
+       etaOneaAsTimeLayer.at(c).at(2)->SetLineColor(hcolors.at(3));
+       etaOneaAsTimeLayer.at(c).at(3)->SetLineColor(hcolors.at(4));
+       etaOneaAsTimeLayer.at(c).at(0)->SetMarkerColor(hcolors.at(1));
+       etaOneaAsTimeLayer.at(c).at(1)->SetMarkerColor(hcolors.at(2));
+       etaOneaAsTimeLayer.at(c).at(2)->SetMarkerColor(hcolors.at(3));
+       etaOneaAsTimeLayer.at(c).at(3)->SetMarkerColor(hcolors.at(4));
        etaOneaAsTimeLayer.at(c).at(0)->Draw("e");
        etaOneaAsTimeLayer.at(c).at(1)->Draw("same e");
        etaOneaAsTimeLayer.at(c).at(2)->Draw("same e");
        etaOneaAsTimeLayer.at(c).at(3)->Draw("same e");
-       leg2a.AddEntry( etaOneaAsTimeLayer.at(c).at(0)  , "L1"  , "p");
-       leg2a.AddEntry( etaOneaAsTimeLayer.at(c).at(1)  , "L2"  , "p");
-       leg2a.AddEntry( etaOneaAsTimeLayer.at(c).at(2)  , "L3"  , "p");
-       leg2a.AddEntry( etaOneaAsTimeLayer.at(c).at(3)  , "L4"  , "p");
+       text.Draw("same");
+       leg2a.AddEntry( etaOneaAsTimeLayer.at(c).at(0)  , "TOB L1"  , "p");
+       leg2a.AddEntry( etaOneaAsTimeLayer.at(c).at(1)  , "TOB L2"  , "p");
+       leg2a.AddEntry( etaOneaAsTimeLayer.at(c).at(2)  , "TOB L3"  , "p");
+       leg2a.AddEntry( etaOneaAsTimeLayer.at(c).at(3)  , "TOB L4"  , "p");
        leg2a.Draw();
        etaOneaAsTimeLayerCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ etaOneaAsTimeLayer.at(c).at(0)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
        etaOneaAsTimeLayerCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ etaOneaAsTimeLayer.at(c).at(0)->GetName()+(string)part+(string)muTrack+ ".root").c_str());
@@ -2098,7 +2444,7 @@ Modified_tdr_style();
 
 
        etaTwoAsTimeLayerCan.at(c)->cd();
-       TLegend leg2b(0.6,0.1,0.95,0.3);
+       TLegend leg2b(0.58,0.20,0.93,0.40);
        for(uint32_t j=0; j<120; j++)
        {
 	  int ne=  narrowTrackSharing2DataEvolutionL1.at(c).at(j)->GetEntries();
@@ -2106,74 +2452,75 @@ Modified_tdr_style();
 	  {
 		  gmaxbin = narrowTrackSharing1DataEvolutionL1.at(c).at(j)->GetMaximumBin();
 		  gmax = narrowTrackSharing1DataEvolutionL1.at(c).at(j)->GetBinCenter(gmaxbin);
-		  gmaxbin2 = narrowTrackSharing1DataEvolutionL1.at(c).at(j)->GetMaximumBin();
-		  gmax2 = narrowTrackSharing1DataEvolutionL1.at(c).at(j)->GetBinCenter(gmaxbin2);
+		  gmaxbin2 = narrowTrackSharing2DataEvolutionL1.at(c).at(j)->GetMaximumBin();
+		  gmax2 = narrowTrackSharing2DataEvolutionL1.at(c).at(j)->GetBinCenter(gmaxbin2);
 		  
 		  lowr1 = gmax-0.1 ;
 		  highr1 = gmax+0.1 ;
-		  lowr2 = gmax2-0.1 ;
-		  highr2 = gmax2+0.1  ;
+		  lowr2 = gmax2-0.15 ;
+		  highr2 = gmax2+0.15  ;
 	      cout << "fitting " << endl;
 	      TF1* ffiteta  =new TF1("feta","gaus", lowr2, highr2); //different range for different geometries
 	      narrowTrackSharing2DataEvolutionL1.at(c).at(j)->Fit(ffiteta, "RL");
 	      double fitMeanEta = ffiteta->GetParameter(1);
 	      double fitMeanEtaErr = ffiteta->GetParError(1);
 	      cout << "binned fit bin " << (string)part+(string)muTrack+ "bin" +to_string( etaTwoAsTimeLayer.at(c).at(0)->GetBinLowEdge(j+1)) << "mean " << fitMeanEta << "+-" << fitMeanEtaErr << endl;
-	      if(j>3) 
+	      if(j>4) 
 	      {
-		  etaTwoAsTimeLayer.at(c).at(0)->SetBinContent(j-3, fitMeanEta );
-		  etaTwoAsTimeLayer.at(c).at(0)->SetBinError(j-3, fitMeanEtaErr );
+		  etaTwoAsTimeLayer.at(c).at(0)->SetBinContent(j-1, fitMeanEta );
+		  etaTwoAsTimeLayer.at(c).at(0)->SetBinError(j-1, fitMeanEtaErr );
 	      }
 	      narrowTrackSharing2DataEvolutionL2.at(c).at(j)->Fit(ffiteta, "RL");
 	      fitMeanEta = ffiteta->GetParameter(1);
 	      fitMeanEtaErr = ffiteta->GetParError(1);
 	      cout << "binned fit bin " << (string)part+(string)muTrack+ "bin" +to_string( etaTwoAsTimeLayer.at(c).at(1)->GetBinLowEdge(j+1)) << "mean " << fitMeanEta << "+-" << fitMeanEtaErr << endl;
-	      if(j>3) 
+	      if(j>4) 
 	      {
-		  etaTwoAsTimeLayer.at(c).at(1)->SetBinContent(j-3, fitMeanEta );
-		  etaTwoAsTimeLayer.at(c).at(1)->SetBinError(j-3, fitMeanEtaErr );
+		  etaTwoAsTimeLayer.at(c).at(1)->SetBinContent(j-1, fitMeanEta );
+		  etaTwoAsTimeLayer.at(c).at(1)->SetBinError(j-1, fitMeanEtaErr );
 	      }
 	      narrowTrackSharing2DataEvolutionL3.at(c).at(j)->Fit(ffiteta, "RL");
 	      fitMeanEta = ffiteta->GetParameter(1);
 	      fitMeanEtaErr = ffiteta->GetParError(1);
 	      cout << "binned fit bin " << (string)part+(string)muTrack+ "bin" +to_string( etaTwoAsTimeLayer.at(c).at(2)->GetBinLowEdge(j+1)) << "mean " << fitMeanEta << "+-" << fitMeanEtaErr << endl;
-	      if(j>3) 
+	      if(j>4) 
 	      {
-		  etaTwoAsTimeLayer.at(c).at(2)->SetBinContent(j-3, fitMeanEta );
-		  etaTwoAsTimeLayer.at(c).at(2)->SetBinError(j-3, fitMeanEtaErr );
+		  etaTwoAsTimeLayer.at(c).at(2)->SetBinContent(j-1, fitMeanEta );
+		  etaTwoAsTimeLayer.at(c).at(2)->SetBinError(j-1, fitMeanEtaErr );
 	      }
 	      narrowTrackSharing2DataEvolutionL4.at(c).at(j)->Fit(ffiteta, "RL");
 	      fitMeanEta = ffiteta->GetParameter(1);
 	      fitMeanEtaErr = ffiteta->GetParError(1);
 	      cout << "binned fit bin " << (string)part+(string)muTrack+ "bin" +to_string( etaTwoAsTimeLayer.at(c).at(3)->GetBinLowEdge(j+1)) << "mean " << fitMeanEta << "+-" << fitMeanEtaErr << endl;
-	      if(j>3) 
+	      if(j>4) 
 	      {
-		  etaTwoAsTimeLayer.at(c).at(3)->SetBinContent(j-3, fitMeanEta );
-		  etaTwoAsTimeLayer.at(c).at(3)->SetBinError(j-3, fitMeanEtaErr );
+		  etaTwoAsTimeLayer.at(c).at(3)->SetBinContent(j-1, fitMeanEta );
+		  etaTwoAsTimeLayer.at(c).at(3)->SetBinError(j-1, fitMeanEtaErr );
 	      }
 	   }
        }
 
        etaTwoAsTimeLayer.at(c).at(0)->SetTitle("");
        etaTwoAsTimeLayer.at(c).at(0)->GetXaxis()->SetTitle("time_{IP}^{InOut} [ns]");
-       etaTwoAsTimeLayer.at(c).at(0)->GetXaxis()->SetRangeUser(-20,10);
-       etaTwoAsTimeLayer.at(c).at(0)->GetYaxis()->SetTitle("#eta #pm 2");
-       etaTwoAsTimeLayer.at(c).at(0)->SetLineColor(1);
-       etaTwoAsTimeLayer.at(c).at(1)->SetLineColor(2);
-       etaTwoAsTimeLayer.at(c).at(2)->SetLineColor(3);
-       etaTwoAsTimeLayer.at(c).at(3)->SetLineColor(4);
-       etaTwoAsTimeLayer.at(c).at(0)->SetMarkerColor(1);
-       etaTwoAsTimeLayer.at(c).at(1)->SetMarkerColor(2);
-       etaTwoAsTimeLayer.at(c).at(2)->SetMarkerColor(3);
-       etaTwoAsTimeLayer.at(c).at(3)->SetMarkerColor(4);
+       etaTwoAsTimeLayer.at(c).at(0)->GetXaxis()->SetRangeUser(-15,5);
+       etaTwoAsTimeLayer.at(c).at(0)->GetYaxis()->SetTitle("#eta_{#pm 2}");
+       etaTwoAsTimeLayer.at(c).at(0)->SetLineColor(hcolors.at(1));
+       etaTwoAsTimeLayer.at(c).at(1)->SetLineColor(hcolors.at(2));
+       etaTwoAsTimeLayer.at(c).at(2)->SetLineColor(hcolors.at(3));
+       etaTwoAsTimeLayer.at(c).at(3)->SetLineColor(hcolors.at(4));
+       etaTwoAsTimeLayer.at(c).at(0)->SetMarkerColor(hcolors.at(1));
+       etaTwoAsTimeLayer.at(c).at(1)->SetMarkerColor(hcolors.at(2));
+       etaTwoAsTimeLayer.at(c).at(2)->SetMarkerColor(hcolors.at(3));
+       etaTwoAsTimeLayer.at(c).at(3)->SetMarkerColor(hcolors.at(4));
        etaTwoAsTimeLayer.at(c).at(0)->Draw("e");
        etaTwoAsTimeLayer.at(c).at(1)->Draw("same e");
        etaTwoAsTimeLayer.at(c).at(2)->Draw("same e");
        etaTwoAsTimeLayer.at(c).at(3)->Draw("same e");
-       leg2b.AddEntry( etaTwoAsTimeLayer.at(c).at(0)  , "L1"  , "p");
-       leg2b.AddEntry( etaTwoAsTimeLayer.at(c).at(1)  , "L2"  , "p");
-       leg2b.AddEntry( etaTwoAsTimeLayer.at(c).at(2)  , "L3"  , "p");
-       leg2b.AddEntry( etaTwoAsTimeLayer.at(c).at(3)  , "L4"  , "p");
+       text.Draw("same");
+       leg2b.AddEntry( etaTwoAsTimeLayer.at(c).at(0)  , "TOB L1"  , "p");
+       leg2b.AddEntry( etaTwoAsTimeLayer.at(c).at(1)  , "TOB L2"  , "p");
+       leg2b.AddEntry( etaTwoAsTimeLayer.at(c).at(2)  , "TOB L3"  , "p");
+       leg2b.AddEntry( etaTwoAsTimeLayer.at(c).at(3)  , "TOB L4"  , "p");
        leg2b.Draw();
        etaTwoAsTimeLayerCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ etaTwoAsTimeLayer.at(c).at(0)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
        etaTwoAsTimeLayerCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ etaTwoAsTimeLayer.at(c).at(0)->GetName()+(string)part+(string)muTrack+ ".root").c_str());
@@ -2181,7 +2528,7 @@ Modified_tdr_style();
 
 
        etaOneaAsTimeMonoStereoCan.at(c)->cd();
-       TLegend leg3a(0.6,0.1,0.95,0.3);
+       TLegend leg3a(0.58,0.20,0.93,0.40);
        for(uint32_t j=0; j<120; j++)
        {
 	  int ne=  narrowTrackSharing1DataEvolutionL1m.at(c).at(j)->GetEntries();
@@ -2189,78 +2536,79 @@ Modified_tdr_style();
 	  {
 		  gmaxbin = narrowTrackSharing1DataEvolutionL1m.at(c).at(j)->GetMaximumBin();
 		  gmax = narrowTrackSharing1DataEvolutionL1m.at(c).at(j)->GetBinCenter(gmaxbin);
-		  gmaxbin2 = narrowTrackSharing1DataEvolutionL1m.at(c).at(j)->GetMaximumBin();
-		  gmax2 = narrowTrackSharing1DataEvolutionL1m.at(c).at(j)->GetBinCenter(gmaxbin2);
+		  gmaxbin2 = narrowTrackSharing2DataEvolutionL1m.at(c).at(j)->GetMaximumBin();
+		  gmax2 = narrowTrackSharing2DataEvolutionL1m.at(c).at(j)->GetBinCenter(gmaxbin2);
 		  
 		  lowr1 = gmax-0.1 ;
 		  highr1 = gmax+0.1 ;
-		  lowr2 = gmax2-0.1 ;
-		  highr2 = gmax2+0.1  ;
+		  lowr2 = gmax2-0.15 ;
+		  highr2 =gmax2+0.15  ;
 	      cout << "fitting " << endl;
 	      TF1* ffiteta  =new TF1("feta","gaus", lowr1, highr1); //different range for different geometries
 	      narrowTrackSharing1DataEvolutionL1m.at(c).at(j)->Fit(ffiteta, "RL");
 	      double fitMeanEta = ffiteta->GetParameter(1);
 	      double fitMeanEtaErr = ffiteta->GetParError(1);
 	      cout << "binned fit bin " << (string)part+(string)muTrack+ "bin" +to_string( etaOneaAsTimeMonoStereo.at(c).at(0)->GetBinLowEdge(j+1)) << "mean " << fitMeanEta << "+-" << fitMeanEtaErr << endl;
-	      if(j>3) 
+	      if(j>4) 
 	      {
-		  etaOneaAsTimeMonoStereo.at(c).at(0)->SetBinContent(j-3, fitMeanEta );
-		  etaOneaAsTimeMonoStereo.at(c).at(0)->SetBinError(j-3, fitMeanEtaErr );
+		  etaOneaAsTimeMonoStereo.at(c).at(0)->SetBinContent(j-1, fitMeanEta );
+		  etaOneaAsTimeMonoStereo.at(c).at(0)->SetBinError(j-1, fitMeanEtaErr );
 	      }
 	      narrowTrackSharing1DataEvolutionL1s.at(c).at(j)->Fit(ffiteta, "RL");
 	      fitMeanEta = ffiteta->GetParameter(1);
 	      fitMeanEtaErr = ffiteta->GetParError(1);
 	      cout << "binned fit bin " << (string)part+(string)muTrack+ "bin" +to_string( etaOneaAsTimeMonoStereo.at(c).at(1)->GetBinLowEdge(j+1)) << "mean " << fitMeanEta << "+-" << fitMeanEtaErr << endl;
-	      if(j>3) 
+	      if(j>4) 
 	      {
-		  etaOneaAsTimeMonoStereo.at(c).at(1)->SetBinContent(j-3, fitMeanEta );
-		  etaOneaAsTimeMonoStereo.at(c).at(1)->SetBinError(j-3, fitMeanEtaErr );
+		  etaOneaAsTimeMonoStereo.at(c).at(1)->SetBinContent(j-1, fitMeanEta );
+		  etaOneaAsTimeMonoStereo.at(c).at(1)->SetBinError(j-1, fitMeanEtaErr );
 	      }
 	      narrowTrackSharing1DataEvolutionL2m.at(c).at(j)->Fit(ffiteta, "RL");
 	      fitMeanEta = ffiteta->GetParameter(1);
 	      fitMeanEtaErr = ffiteta->GetParError(1);
 	      cout << "binned fit bin " << (string)part+(string)muTrack+ "bin" +to_string( etaOneaAsTimeMonoStereo.at(c).at(2)->GetBinLowEdge(j+1)) << "mean " << fitMeanEta << "+-" << fitMeanEtaErr << endl;
-	      if(j>3) 
+	      if(j>4) 
 	      {
-		  etaOneaAsTimeMonoStereo.at(c).at(2)->SetBinContent(j-3, fitMeanEta );
-		  etaOneaAsTimeMonoStereo.at(c).at(2)->SetBinError(j-3, fitMeanEtaErr );
+		  etaOneaAsTimeMonoStereo.at(c).at(2)->SetBinContent(j-1, fitMeanEta );
+		  etaOneaAsTimeMonoStereo.at(c).at(2)->SetBinError(j-1, fitMeanEtaErr );
 	      }
 	      narrowTrackSharing1DataEvolutionL2s.at(c).at(j)->Fit(ffiteta, "RL");
 	      fitMeanEta = ffiteta->GetParameter(1);
 	      fitMeanEtaErr = ffiteta->GetParError(1);
 	      cout << "binned fit bin " << (string)part+(string)muTrack+ "bin" +to_string( etaOneaAsTimeMonoStereo.at(c).at(3)->GetBinLowEdge(j+1)) << "mean " << fitMeanEta << "+-" << fitMeanEtaErr << endl;
-	      if(j>3) 
+	      if(j>4) 
 	      {
-		  etaOneaAsTimeMonoStereo.at(c).at(3)->SetBinContent(j-3, fitMeanEta );
-		  etaOneaAsTimeMonoStereo.at(c).at(3)->SetBinError(j-3, fitMeanEtaErr );
+		  etaOneaAsTimeMonoStereo.at(c).at(3)->SetBinContent(j-1, fitMeanEta );
+		  etaOneaAsTimeMonoStereo.at(c).at(3)->SetBinError(j-1, fitMeanEtaErr );
 	      }
 	   }
        }
 
        etaOneaAsTimeMonoStereo.at(c).at(0)->SetTitle("");
        etaOneaAsTimeMonoStereo.at(c).at(0)->GetXaxis()->SetTitle("time_{IP}^{InOut} [ns]");
-       etaOneaAsTimeMonoStereo.at(c).at(0)->GetXaxis()->SetRangeUser(-20,10);
-       etaOneaAsTimeMonoStereo.at(c).at(0)->GetYaxis()->SetRangeUser(-0.08,0.22);
-       etaOneaAsTimeMonoStereo.at(c).at(1)->GetYaxis()->SetRangeUser(-0.08,0.22);
-       etaOneaAsTimeMonoStereo.at(c).at(2)->GetYaxis()->SetRangeUser(-0.08,0.22);
-       etaOneaAsTimeMonoStereo.at(c).at(3)->GetYaxis()->SetRangeUser(-0.08,0.22);
-       etaOneaAsTimeMonoStereo.at(c).at(0)->GetYaxis()->SetTitle("#eta #pm 1");
-       etaOneaAsTimeMonoStereo.at(c).at(0)->SetLineColor(1);
-       etaOneaAsTimeMonoStereo.at(c).at(1)->SetLineColor(2);
-       etaOneaAsTimeMonoStereo.at(c).at(2)->SetLineColor(3);
-       etaOneaAsTimeMonoStereo.at(c).at(3)->SetLineColor(4);
-       etaOneaAsTimeMonoStereo.at(c).at(0)->SetMarkerColor(1);
-       etaOneaAsTimeMonoStereo.at(c).at(1)->SetMarkerColor(2);
-       etaOneaAsTimeMonoStereo.at(c).at(2)->SetMarkerColor(3);
-       etaOneaAsTimeMonoStereo.at(c).at(3)->SetMarkerColor(4);
+       etaOneaAsTimeMonoStereo.at(c).at(0)->GetXaxis()->SetRangeUser(-15,5);
+       //etaOneaAsTimeMonoStereo.at(c).at(0)->GetYaxis()->SetRangeUser(-0.08,0.22);
+       //etaOneaAsTimeMonoStereo.at(c).at(1)->GetYaxis()->SetRangeUser(-0.08,0.22);
+       //etaOneaAsTimeMonoStereo.at(c).at(2)->GetYaxis()->SetRangeUser(-0.08,0.22);
+       //etaOneaAsTimeMonoStereo.at(c).at(3)->GetYaxis()->SetRangeUser(-0.08,0.22);
+       etaOneaAsTimeMonoStereo.at(c).at(0)->GetYaxis()->SetTitle("#eta_{#pm 1}");
+       etaOneaAsTimeMonoStereo.at(c).at(0)->SetLineColor(hcolors.at(1));
+       etaOneaAsTimeMonoStereo.at(c).at(1)->SetLineColor(hcolors.at(2));
+       etaOneaAsTimeMonoStereo.at(c).at(2)->SetLineColor(hcolors.at(3));
+       etaOneaAsTimeMonoStereo.at(c).at(3)->SetLineColor(hcolors.at(4));
+       etaOneaAsTimeMonoStereo.at(c).at(0)->SetMarkerColor(hcolors.at(1));
+       etaOneaAsTimeMonoStereo.at(c).at(1)->SetMarkerColor(hcolors.at(2));
+       etaOneaAsTimeMonoStereo.at(c).at(2)->SetMarkerColor(hcolors.at(3));
+       etaOneaAsTimeMonoStereo.at(c).at(3)->SetMarkerColor(hcolors.at(4));
        etaOneaAsTimeMonoStereo.at(c).at(0)->Draw("e");
        etaOneaAsTimeMonoStereo.at(c).at(1)->Draw("same e");
        etaOneaAsTimeMonoStereo.at(c).at(2)->Draw("same e");
        etaOneaAsTimeMonoStereo.at(c).at(3)->Draw("same e");
-       leg3a.AddEntry( etaOneaAsTimeMonoStereo.at(c).at(0)  , "L1 mono"  , "p");
-       leg3a.AddEntry( etaOneaAsTimeMonoStereo.at(c).at(1)  , "L1 stereo"  , "p");
-       leg3a.AddEntry( etaOneaAsTimeMonoStereo.at(c).at(2)  , "L2 mono"  , "p");
-       leg3a.AddEntry( etaOneaAsTimeMonoStereo.at(c).at(3)  , "L2 stereo"  , "p");
+       text.Draw("same");
+       leg3a.AddEntry( etaOneaAsTimeMonoStereo.at(c).at(0)  , "TOB L1 mono"  , "p");
+       leg3a.AddEntry( etaOneaAsTimeMonoStereo.at(c).at(1)  , "TOB L1 stereo"  , "p");
+       leg3a.AddEntry( etaOneaAsTimeMonoStereo.at(c).at(2)  , "TOB L2 mono"  , "p");
+       leg3a.AddEntry( etaOneaAsTimeMonoStereo.at(c).at(3)  , "TOB L2 stereo"  , "p");
        leg3a.Draw();
        etaOneaAsTimeMonoStereoCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ etaOneaAsTimeMonoStereo.at(c).at(0)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
        etaOneaAsTimeMonoStereoCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ etaOneaAsTimeMonoStereo.at(c).at(0)->GetName()+(string)part+(string)muTrack+ ".root").c_str());
@@ -2268,7 +2616,7 @@ Modified_tdr_style();
 
 
        etaTwoAsTimeMonoStereoCan.at(c)->cd();
-       TLegend leg3b(0.6,0.1,0.95,0.3);
+       TLegend leg3b(0.58,0.20,0.93,0.40);
        for(uint32_t j=0; j<120; j++)
        {
 	  int ne=  narrowTrackSharing2DataEvolutionL1m.at(c).at(j)->GetEntries();
@@ -2276,74 +2624,75 @@ Modified_tdr_style();
 	  {
 		  gmaxbin = narrowTrackSharing1DataEvolutionL1m.at(c).at(j)->GetMaximumBin();
 		  gmax = narrowTrackSharing1DataEvolutionL1m.at(c).at(j)->GetBinCenter(gmaxbin);
-		  gmaxbin2 = narrowTrackSharing1DataEvolutionL1m.at(c).at(j)->GetMaximumBin();
-		  gmax2 = narrowTrackSharing1DataEvolutionL1m.at(c).at(j)->GetBinCenter(gmaxbin2);
+		  gmaxbin2 = narrowTrackSharing2DataEvolutionL1m.at(c).at(j)->GetMaximumBin();
+		  gmax2 = narrowTrackSharing2DataEvolutionL1m.at(c).at(j)->GetBinCenter(gmaxbin2);
 		  
 		  lowr1 = gmax-0.1 ;
 		  highr1 = gmax+0.1 ;
-		  lowr2 = gmax2-0.1 ;
-		  highr2 = gmax2+0.1  ;
+		  lowr2 = gmax2-0.15 ;
+		  highr2 = gmax2+0.15  ;
 	      cout << "fitting " << endl;
 	      TF1* ffiteta  =new TF1("feta","gaus", lowr2, highr2); //different range for different geometries
 	      narrowTrackSharing2DataEvolutionL1m.at(c).at(j)->Fit(ffiteta, "RL");
 	      double fitMeanEta = ffiteta->GetParameter(1);
 	      double fitMeanEtaErr = ffiteta->GetParError(1);
 	      cout << "binned fit bin " << (string)part+(string)muTrack+ "bin" +to_string( etaTwoAsTimeMonoStereo.at(c).at(0)->GetBinLowEdge(j+1)) << "mean " << fitMeanEta << "+-" << fitMeanEtaErr << endl;
-	      if(j>3) 
+	      if(j>4) 
 	      {
-		  etaTwoAsTimeMonoStereo.at(c).at(0)->SetBinContent(j-3, fitMeanEta );
-		  etaTwoAsTimeMonoStereo.at(c).at(0)->SetBinError(j-3, fitMeanEtaErr );
+		  etaTwoAsTimeMonoStereo.at(c).at(0)->SetBinContent(j-1, fitMeanEta );
+		  etaTwoAsTimeMonoStereo.at(c).at(0)->SetBinError(j-1, fitMeanEtaErr );
 	      }
 	      narrowTrackSharing2DataEvolutionL1s.at(c).at(j)->Fit(ffiteta, "RL");
 	      fitMeanEta = ffiteta->GetParameter(1);
 	      fitMeanEtaErr = ffiteta->GetParError(1);
 	      cout << "binned fit bin " << (string)part+(string)muTrack+ "bin" +to_string( etaTwoAsTimeMonoStereo.at(c).at(1)->GetBinLowEdge(j+1)) << "mean " << fitMeanEta << "+-" << fitMeanEtaErr << endl;
-	      if(j>3) 
+	      if(j>4) 
 	      {
-		  etaTwoAsTimeMonoStereo.at(c).at(1)->SetBinContent(j-3, fitMeanEta );
-		  etaTwoAsTimeMonoStereo.at(c).at(1)->SetBinError(j-3, fitMeanEtaErr );
+		  etaTwoAsTimeMonoStereo.at(c).at(1)->SetBinContent(j-1, fitMeanEta );
+		  etaTwoAsTimeMonoStereo.at(c).at(1)->SetBinError(j-1, fitMeanEtaErr );
 	      }
 	      narrowTrackSharing2DataEvolutionL2m.at(c).at(j)->Fit(ffiteta, "RL");
 	      fitMeanEta = ffiteta->GetParameter(1);
 	      fitMeanEtaErr = ffiteta->GetParError(1);
 	      cout << "binned fit bin " << (string)part+(string)muTrack+ "bin" +to_string( etaTwoAsTimeMonoStereo.at(c).at(2)->GetBinLowEdge(j+1)) << "mean " << fitMeanEta << "+-" << fitMeanEtaErr << endl;
-	      if(j>3) 
+	      if(j>4) 
 	      {
-		  etaTwoAsTimeMonoStereo.at(c).at(2)->SetBinContent(j-3, fitMeanEta );
-		  etaTwoAsTimeMonoStereo.at(c).at(2)->SetBinError(j-3, fitMeanEtaErr );
+		  etaTwoAsTimeMonoStereo.at(c).at(2)->SetBinContent(j-1, fitMeanEta );
+		  etaTwoAsTimeMonoStereo.at(c).at(2)->SetBinError(j-1, fitMeanEtaErr );
 	      }
 	      narrowTrackSharing2DataEvolutionL2s.at(c).at(j)->Fit(ffiteta, "RL");
 	      fitMeanEta = ffiteta->GetParameter(1);
 	      fitMeanEtaErr = ffiteta->GetParError(1);
 	      cout << "binned fit bin " << (string)part+(string)muTrack+ "bin" +to_string( etaTwoAsTimeMonoStereo.at(c).at(3)->GetBinLowEdge(j+1)) << "mean " << fitMeanEta << "+-" << fitMeanEtaErr << endl;
-	      if(j>3) 
+	      if(j>4) 
 	      {
-		  etaTwoAsTimeMonoStereo.at(c).at(3)->SetBinContent(j-3, fitMeanEta );
-		  etaTwoAsTimeMonoStereo.at(c).at(3)->SetBinError(j-3, fitMeanEtaErr );
+		  etaTwoAsTimeMonoStereo.at(c).at(3)->SetBinContent(j-1, fitMeanEta );
+		  etaTwoAsTimeMonoStereo.at(c).at(3)->SetBinError(j-1, fitMeanEtaErr );
 	      }
 	   }
        }
 
        etaTwoAsTimeMonoStereo.at(c).at(0)->SetTitle("");
        etaTwoAsTimeMonoStereo.at(c).at(0)->GetXaxis()->SetTitle("time_{IP}^{InOut} [ns]");
-       etaTwoAsTimeMonoStereo.at(c).at(0)->GetXaxis()->SetRangeUser(-20,10);
-       etaTwoAsTimeMonoStereo.at(c).at(0)->GetYaxis()->SetTitle("#eta #pm 2");
-       etaTwoAsTimeMonoStereo.at(c).at(0)->SetLineColor(1);
-       etaTwoAsTimeMonoStereo.at(c).at(1)->SetLineColor(2);
-       etaTwoAsTimeMonoStereo.at(c).at(2)->SetLineColor(3);
-       etaTwoAsTimeMonoStereo.at(c).at(3)->SetLineColor(4);
-       etaTwoAsTimeMonoStereo.at(c).at(0)->SetMarkerColor(1);
-       etaTwoAsTimeMonoStereo.at(c).at(1)->SetMarkerColor(2);
-       etaTwoAsTimeMonoStereo.at(c).at(2)->SetMarkerColor(3);
-       etaTwoAsTimeMonoStereo.at(c).at(3)->SetMarkerColor(4);
+       etaTwoAsTimeMonoStereo.at(c).at(0)->GetXaxis()->SetRangeUser(-15,5);
+       etaTwoAsTimeMonoStereo.at(c).at(0)->GetYaxis()->SetTitle("#eta_{#pm 2}");
+       etaTwoAsTimeMonoStereo.at(c).at(0)->SetLineColor(hcolors.at(1));
+       etaTwoAsTimeMonoStereo.at(c).at(1)->SetLineColor(hcolors.at(2));
+       etaTwoAsTimeMonoStereo.at(c).at(2)->SetLineColor(hcolors.at(3));
+       etaTwoAsTimeMonoStereo.at(c).at(3)->SetLineColor(hcolors.at(4));
+       etaTwoAsTimeMonoStereo.at(c).at(0)->SetMarkerColor(hcolors.at(1));
+       etaTwoAsTimeMonoStereo.at(c).at(1)->SetMarkerColor(hcolors.at(2));
+       etaTwoAsTimeMonoStereo.at(c).at(2)->SetMarkerColor(hcolors.at(3));
+       etaTwoAsTimeMonoStereo.at(c).at(3)->SetMarkerColor(hcolors.at(4));
        etaTwoAsTimeMonoStereo.at(c).at(0)->Draw("e");
        etaTwoAsTimeMonoStereo.at(c).at(1)->Draw("same e");
        etaTwoAsTimeMonoStereo.at(c).at(2)->Draw("same e");
        etaTwoAsTimeMonoStereo.at(c).at(3)->Draw("same e");
-       leg3b.AddEntry( etaTwoAsTimeMonoStereo.at(c).at(0)  , "L1 mono"  , "p");
-       leg3b.AddEntry( etaTwoAsTimeMonoStereo.at(c).at(1)  , "L1 stereo"  , "p");
-       leg3b.AddEntry( etaTwoAsTimeMonoStereo.at(c).at(2)  , "L2 mono"  , "p");
-       leg3b.AddEntry( etaTwoAsTimeMonoStereo.at(c).at(3)  , "L2 stereo"  , "p");
+       text.Draw("same");
+       leg3b.AddEntry( etaTwoAsTimeMonoStereo.at(c).at(0)  , "TOB L1 mono"  , "p");
+       leg3b.AddEntry( etaTwoAsTimeMonoStereo.at(c).at(1)  , "TOB L1 stereo"  , "p");
+       leg3b.AddEntry( etaTwoAsTimeMonoStereo.at(c).at(2)  , "TOB L2 mono"  , "p");
+       leg3b.AddEntry( etaTwoAsTimeMonoStereo.at(c).at(3)  , "TOB L2 stereo"  , "p");
        leg3b.Draw();
        etaTwoAsTimeMonoStereoCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ etaTwoAsTimeMonoStereo.at(c).at(0)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
        etaTwoAsTimeMonoStereoCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ etaTwoAsTimeMonoStereo.at(c).at(0)->GetName()+(string)part+(string)muTrack+ ".root").c_str());
@@ -2423,44 +2772,9 @@ Modified_tdr_style();
 
 
 
-       chargePerUnitBinsCan.at(c)->cd();
-       float med = 0;
-       for(uint32_t u=0; u<chargePerUnitBins.at(c).size(); u++)
-       {
-           chargePerUnitBins.at(c).at(u)->GetXaxis()->SetTitle("time");
-           chargePerUnitBins.at(c).at(u)->GetYaxis()->SetTitle("cluster seed charge");
-           chargePerUnitBins.at(c).at(u)->SetTitle("");
-           chargePerUnitBins.at(c).at(u)->SetLineColor(u+1);
-           cout << "start time emdian " << endl;
-           sort(timeMedian.at(c).at(u).begin(), timeMedian.at(c).at(u).end() );
-           uint32_t half = floor(timeMedian.at(c).at(u).size()/2) ;
-           cout << " size " << timeMedian.at(c).at(u).size() <<  " half  " << half << endl;
-           if(half>0)
-                med = timeMedian.at(c).at(u).at(half);
-           cout << "end time emdian " << endl;
-           if(u==0)
-               chargePerUnitBins.at(c).at(u)->Draw("*");
-           else
-               chargePerUnitBins.at(c).at(u)->Draw("same e");
-       TF1* ffitTime  =new TF1("ft1","gaus", -20, 10); //different range for different geometries
-       ffitTime->SetLineColor(u+1);
-       chargePerUnitBins.at(c).at(u)->Fit(ffitTime, "RL");
-       double fitTime = ffitTime->GetParameter(1);
-       double fitTimeErr = ffitTime->GetParError(1);
-       float whichb = chargePerUnitBinsFit.at(c)->FindBin(med);
-       chargePerUnitBinsFit.at(c)->SetBinContent(whichb ,fitTime);
-       cout << " median " <<  med <<  " point " << whichb << " fit "<< fitTime << endl;
-       chargePerUnitBinsFit.at(c)->SetBinError(whichb ,fitTimeErr);
-       }
              
-       chargePerUnitBinsCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ chargePerUnitBins.at(c).at(0)->GetName()+(string)part+(string)muTrack+ ".root").c_str());
-       chargePerUnitBinsCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ chargePerUnitBins.at(c).at(0)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
-       chargePerUnitBinsFitCan.at(c)->cd();
-       chargePerUnitBinsFit.at(c)->Draw("e");
-       chargePerUnitBinsFitCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ chargePerUnitBins.at(c).at(0)->GetName()+"fit"+(string)part+(string)muTrack+ ".root").c_str());
-       chargePerUnitBinsFitCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ chargePerUnitBins.at(c).at(0)->GetName()+"fit"+(string)part+(string)muTrack+ ".eps").c_str());
 
-       innerZCan.at(c)->cd();
+  /*     innerZCan.at(c)->cd();
        innerZ.at(c)->GetXaxis()->SetTitle("z");
        innerZ.at(c)->SetTitle("");
        innerZ.at(c)->Draw("hist"); 
@@ -2487,7 +2801,7 @@ Modified_tdr_style();
        innerVX.at(c)->Draw("hist"); 
        innerVXCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ innerVX.at(c)->GetName()+(string)part+(string)muTrack+ ".root").c_str());
        innerVXCan.at(c)->SaveAs(("output/"+(string)dir+"/"+ innerVX.at(c)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
-  
+  */
        //sort(timeMedian.at(c).begin(), timeMedian.at(c).end() );
        //uint32_t vecSize =timeMedian.at(c).size();
        //float median = -100 ;
@@ -2579,26 +2893,71 @@ Modified_tdr_style();
 
        chargePerUnitLayersBinsCan->cd();
        TLegend leg1(0.6,0.7,0.9,0.9);
-       for(uint32_t u=0; u<chargePerUnitLayersBins.size(); u++)
+       for(uint32_t u=0; u<4; u++)
        {
            chargePerUnitLayersBins.at(u)->GetXaxis()->SetTitle("time_{IP}^{InOut} [ns]");
-           chargePerUnitLayersBins.at(u)->GetYaxis()->SetTitle("cluster charge over path [ADC/cm]");
+           chargePerUnitLayersBins.at(u)->GetYaxis()->SetTitle("cluster seed charge over path [ADC/cm]");
            chargePerUnitLayersBins.at(u)->SetTitle("");
-           chargePerUnitLayersBins.at(u)->SetLineColor(u+1);
-           chargePerUnitLayersBins.at(u)->SetMarkerColor(u+1);
+           chargePerUnitLayersBins.at(u)->SetLineColor(hcolors.at(u+1));
+           chargePerUnitLayersBins.at(u)->SetMarkerColor(hcolors.at(u+1));
+           chargePerUnitLayersBins.at(u)->SetStats(kFALSE);
+           if(u==0)
+               chargePerUnitLayersBins.at(u)->SetMaximum(1.2*(chargePerUnitLayersBins.at(u)->GetMaximum()));
            if(u==0)
                chargePerUnitLayersBins.at(u)->Draw("e");
            else
                chargePerUnitLayersBins.at(u)->Draw("same e");
        }
+       TF1* fb  =new TF1("feta","gaus", -16, 4); //different range for different geometries
+       for(uint32_t u=0; u< 4; u++)
+       {
+           sort(timeMedianLayers.at(u).begin(), timeMedianLayers.at(u).end() );
+           uint32_t half = floor(timeMedianLayers.at(u).size()/2) ;
+           cout << " size " << timeMedianLayers.at(u).size() <<  " half  " << half << endl;
+           float medL = 0;
+           if(half>0)
+                medL = timeMedianLayers.at(u).at(half);
+           cout << "end time emdian " << endl;
+           fb->SetLineColor(hcolors.at(u+1));
+           chargePerUnitLayersBins.at(u)->Fit(fb, "RL");
+           chargePerUnitLayersBins.at(u)->SetStats(kFALSE);
+	   cout << "fit bin " << u << " mean " <<  fb->GetParameter(1) << " error  " << fb->GetParError(1) << endl;
+           double ft = fb->GetParameter(1);
+           double ftE = fb->GetParError(1);
+           float whichb = chargePerUnitLayersBinsFit->FindBin(medL);
+           chargePerUnitLayersBinsFit->SetBinContent(whichb ,ft);
+           cout << " median " <<  medL <<  " point " << whichb << " fit "<< ft << endl;
+           chargePerUnitLayersBinsFit->SetBinError(whichb ,ftE);
+       }
+       //TLegend leg1(0.6,0.7,0.9,0.9);
        leg1.AddEntry( chargePerUnitLayersBins.at(0)  , "dist<20cm"  , "p");
-       leg1.AddEntry( chargePerUnitLayersBins.at(1)  , "20cm<dist<60cm"  , "p");
-       leg1.AddEntry( chargePerUnitLayersBins.at(2)  , "60cm<dist<120cm"  , "p");
-       leg1.AddEntry( chargePerUnitLayersBins.at(3)  , "all dist"  , "p");
+       leg1.AddEntry( chargePerUnitLayersBins.at(1)  , "20cm<dist<40cm"  , "p");
+       leg1.AddEntry( chargePerUnitLayersBins.at(2)  , "40cm<dist<60cm"  , "p");
+       leg1.AddEntry( chargePerUnitLayersBins.at(3)  , "60cm<dist<80cm"  , "p");
        leg1.Draw();
        chargePerUnitLayersBinsCan->SaveAs(("output/"+(string)dir+"/"+ chargePerUnitLayersBins.at(0)->GetName()+(string)part+(string)muTrack+ ".root").c_str());
        chargePerUnitLayersBinsCan->SaveAs(("output/"+(string)dir+"/"+ chargePerUnitLayersBins.at(0)->GetName()+(string)part+(string)muTrack+ ".eps").c_str());
 
+       TF1* linTimeL  =new TF1("fl1L","pol1", 0, 100); //different range for different geometries
+
+       TFitResultPtr fitresL = chargePerUnitLayersBinsFit->Fit( linTimeL , "RS"); 
+       chargePerUnitLayersBinsFit->GetYaxis()->SetTitle("time_{IP}^{InOut} [cm]");
+       chargePerUnitLayersBinsFit->GetXaxis()->SetTitle("track distance to the IP [cm]");
+       //cout << chargePerUnitlayersBins.at(0)->GetName() << "fit" << part << muTrack << endl;
+       TMatrixDSym cov = fitresL->GetCovarianceMatrix();
+       double fitp1 = linTimeL->GetParameter(0);
+       double fitp1Err = linTimeL->GetParError(0);
+       double fitp2 = linTimeL->GetParameter(1);
+       double fitp2Err = linTimeL->GetParError(1);
+       //double totalErr = TMath::Sqrt( (fitp1Err*fitp1Err)+(fitp2Err*fitp2Err)+ cov(0,1)  ); 
+       double totalErr = fitp1Err; 
+       cout << "time correction par1 " << fitp1 << " par1 err  " << fitp1Err << " par2  " << fitp2 << " par2 err " << fitp2Err << " total err " << totalErr << endl;
+       cout << "covariance element " << cov(0,1) << endl;
+       fitresL->PrintCovMatrix(cout);
+       chargePerUnitLayersBinsFitCan->cd();
+       chargePerUnitLayersBinsFit->Draw("e");
+       chargePerUnitLayersBinsFitCan->SaveAs(("output/"+(string)dir+"/"+ chargePerUnitLayersBins.at(0)->GetName()+"fit"+(string)part+(string)muTrack+ ".root").c_str());
+       chargePerUnitLayersBinsFitCan->SaveAs(("output/"+(string)dir+"/"+ chargePerUnitLayersBins.at(0)->GetName()+"fit"+(string)part+(string)muTrack+ ".eps").c_str());
 
     //cout << "in here 7"  << endl;
 

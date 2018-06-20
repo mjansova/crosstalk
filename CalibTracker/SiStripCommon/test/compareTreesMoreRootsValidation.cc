@@ -10,37 +10,51 @@
 //data/MC AV
 //./compareTreesMoreRootsValidation 6 /opt/sbg/data/data6/cms/mjansova/CMSSW_10_0_2/src/CalibTracker/SiStripCommon/test/test_shallowTrackAndCluster_test.root /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_default_1step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_AV_240step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_AV_270step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_AV_330step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_AV_360step3.rootanalyzer2.root TOB 1 4 yes tuningAV AV 300-default 240 270 330 360
 //
+//./compareTreesMoreRootsValidation 6 /opt/sbg/data/data6/cms/mjansova/CMSSW_10_0_2/src/CalibTracker/SiStripCommon/test/test_shallowTrackAndCluster_test.root /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_default_1step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_AV_240step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_AV_270step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_AV_330step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_AV_360step3.rootanalyzer2.root TOB 1 4 yes tuningAV AV 300 -20% -10% +10% +20%
+
 //data/MC DV
-//./compareTreesMoreRootsValidation 6 /opt/sbg/data/data6/cms/mjansova/CMSSW_10_0_2/src/CalibTracker/SiStripCommon/test/test_shallowTrackAndCluster_test.root /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_default_1step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_DV_136step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_DV_153step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_DV_187step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_DV_204step3.rootanalyzer2.root TOB 1 4 yes tuningDV DV default-170 136 153 187 204
+//./compareTreesMoreRootsValidation 6 /opt/sbg/data/data6/cms/mjansova/CMSSW_10_0_2/src/CalibTracker/SiStripCommon/test/test_shallowTrackAndCluster_test.root /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_default_1step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_DV_136step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_DV_153step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_DV_187step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_DV_204step3.rootanalyzer2.root TOB 1 4 yes tuningDV DV 170 -20% -10% +10% +20%
 //
 //
 //data/MC gevPerElectron
-//./compareTreesMoreRootsValidation 6 /opt/sbg/data/data6/cms/mjansova/CMSSW_10_0_2/src/CalibTracker/SiStripCommon/test/test_shallowTrackAndCluster_test.root /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_default_1step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_GevPerElectron_2.888e-09step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_GevPerElectron_3.249e-09step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_GevPerElectron_3.971e-09step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_GevPerElectron_4.332e-09step3.rootanalyzer2.root TOB 1 4 yes tuningGevPerElectron GeVPerElectron 3.61e-09-default 2.888e-09 3.249e-09 3.971e-09 4.332e-09
+//./compareTreesMoreRootsValidation 6 /opt/sbg/data/data6/cms/mjansova/CMSSW_10_0_2/src/CalibTracker/SiStripCommon/test/test_shallowTrackAndCluster_test.root /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_default_1step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_GevPerElectron_2.888e-09step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_GevPerElectron_3.249e-09step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_GevPerElectron_3.971e-09step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_GevPerElectron_4.332e-09step3.rootanalyzer2.root TOB 1 4 yes tuningGevPerElectron Ee 3.61e-09  -20% -10% +10% +20%
 
 //data/MC temperature
-//./compareTreesMoreRootsValidation 6 /opt/sbg/data/data6/cms/mjansova/CMSSW_10_0_2/src/CalibTracker/SiStripCommon/test/test_shallowTrackAndCluster_test.root /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_default_1step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_Temperature_219step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_Temperature_246step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_Temperature_300step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_Temperature_327step3.rootanalyzer2.root TOB 1 4 yes tuningTemperature Temperature 273-default 219 246 300 327
+//./compareTreesMoreRootsValidation 6 /opt/sbg/data/data6/cms/mjansova/CMSSW_10_0_2/src/CalibTracker/SiStripCommon/test/test_shallowTrackAndCluster_test.root /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_default_1step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_Temperature_219step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_Temperature_246step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_Temperature_300step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_Temperature_327step3.rootanalyzer2.root TOB 1 4 yes tuningTemperature T 273  -20% -10% +10% +20%
 //
 ////data/MC chargeDistrRMS
 //./compareTreesMoreRootsValidation 6 /opt/sbg/data/data6/cms/mjansova/CMSSW_10_0_2/src/CalibTracker/SiStripCommon/test/test_shallowTrackAndCluster_test.root /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_default_1step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_ChargeDistributionRMS_5.2e-10step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_ChargeDistributionRMS_5.85e-10step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_ChargeDistributionRMS_7.15e-10step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_ChargeDistributionRMS_7.8e-10step3.rootanalyzer2.root TOB 1 4 yes tuningChargeDistributionRMS ChargeDistrRMS 6.5e-10-default 5.2e-10 5.85e-10 7.15e-10 7.8e-10
 //
 //data/MC DeltaProductionCut
-//./compareTreesMoreRootsValidation 6 /opt/sbg/data/data6/cms/mjansova/CMSSW_10_0_2/src/CalibTracker/SiStripCommon/test/test_shallowTrackAndCluster_test.root /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_default_1step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_DeltaProductionCut_0.09634step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_DeltaProductionCut_0.1083825step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_DeltaProductionCut_0.1324675step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_DeltaProductionCut_0.14451step3.rootanalyzer2.root TOB 1 4 yes tuningDeltaProductionCut DeltaProdCut 0.120425 0.09634 0.1083825 0.1324675 0.14451
+//./compareTreesMoreRootsValidation 6 /opt/sbg/data/data6/cms/mjansova/CMSSW_10_0_2/src/CalibTracker/SiStripCommon/test/test_shallowTrackAndCluster_test.root /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_default_1step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_DeltaProductionCut_0.09634step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_DeltaProductionCut_0.1083825step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_DeltaProductionCut_0.1324675step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_DeltaProductionCut_0.14451step3.rootanalyzer2.root TOB 1 4 yes tuningDeltaProductionCut #delta 0.120425 0.09634 0.1083825 0.1324675 0.14451
+//
+//
+//./compareTreesMoreRootsValidation 6 /opt/sbg/data/data6/cms/mjansova/CMSSW_10_0_2/src/CalibTracker/SiStripCommon/test/test_shallowTrackAndCluster_test.root /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_default_1step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_DeltaProductionCut_0.09634step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_DeltaProductionCut_0.1083825step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_DeltaProductionCut_0.1324675step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_DeltaProductionCut_0.14451step3.rootanalyzer2.root TOB 1 4 yes tuningDeltaProductionCut delta 0.120425 0.120425-20% 0.120425-10% 0.120425+10% 0.120425+20%
+//
+//./compareTreesMoreRootsValidation 6 /opt/sbg/data/data6/cms/mjansova/CMSSW_10_0_2/src/CalibTracker/SiStripCommon/test/test_shallowTrackAndCluster_test.root /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_default_1step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_DeltaProductionCut_0.09634step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_DeltaProductionCut_0.1083825step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_DeltaProductionCut_0.1324675step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_DeltaProductionCut_0.14451step3.rootanalyzer2.root TOB 1 4 yes tuningDeltaProductionCut delta 0.120425 -20% -10% +10% +20%
+//
 //
 //data/MC ChatgeMobility 
-//./compareTreesMoreRootsValidation 6 /opt/sbg/data/data6/cms/mjansova/CMSSW_10_0_2/src/CalibTracker/SiStripCommon/test/test_shallowTrackAndCluster_test.root /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_default_1step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_Mobility_248step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_Mobility_279step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_Mobility_341step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_Mobility_372step3.rootanalyzer2.root TOB 1 4 yes tuningChargeMobility ChargeMob 310-default 248 279 341 372
+//./compareTreesMoreRootsValidation 6 /opt/sbg/data/data6/cms/mjansova/CMSSW_10_0_2/src/CalibTracker/SiStripCommon/test/test_shallowTrackAndCluster_test.root /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_default_1step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_Mobility_248step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_Mobility_279step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_Mobility_341step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_Mobility_372step3.rootanalyzer2.root TOB 1 4 yes tuningChargeMobility mu 310 -20% -10% +10% +20%
 //
 //data/MC ePerADC
-//./compareTreesMoreRootsValidation 6 /opt/sbg/data/data6/cms/mjansova/CMSSW_10_0_2/src/CalibTracker/SiStripCommon/test/test_shallowTrackAndCluster_test.root /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_default_1step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_electronPerAdc_197step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_electronPerAdc_222step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_electronPerAdc_272step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_electronPerAdc_297step3.rootanalyzer2.root TOB 1 4 yes tuningElectronPerAdc ElectronPerADC 247-default 197 222 272 297
+//./compareTreesMoreRootsValidation 6 /opt/sbg/data/data6/cms/mjansova/CMSSW_10_0_2/src/CalibTracker/SiStripCommon/test/test_shallowTrackAndCluster_test.root /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_default_1step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_electronPerAdc_197step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_electronPerAdc_222step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_electronPerAdc_272step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_electronPerAdc_297step3.rootanalyzer2.root TOB 1 4 yes tuningElectronPerAdc eADC 247 -20% -10% +10% +20%
 
 //data/MC coupling
-//./compareTreesMoreRootsValidation 7 /opt/sbg/data/data6/cms/mjansova/CMSSW_10_0_2/src/CalibTracker/SiStripCommon/test/test_shallowTrackAndCluster_test.root /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_default_1step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_247_0.12_0.029000000000000001step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_247_0.12_0.023step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_247_0.10000000000000001_0.029000000000000001step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_247_0.10000000000000001_0.023step3.rootanalyzer2.root /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_247_0.070000000000000007_0.023step3.rootanalyzer2.root TOB 1 4 yes tuningXtalk coupling 0.725,0.110,0.027-default 0.702,0.120,0.029 0.714,0.120,0.023  0.742,0.100,0.029 0.754,0.100,0.023 0.814,0.070,0.023
+//./compareTreesMoreRootsValidation 7 /opt/sbg/data/data6/cms/mjansova/CMSSW_10_0_2/src/CalibTracker/SiStripCommon/test/test_shallowTrackAndCluster_test.root /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_default_1step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_247_0.12_0.029000000000000001step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_247_0.12_0.023step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_247_0.10000000000000001_0.029000000000000001step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_247_0.10000000000000001_0.023step3.rootanalyzer2.root /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_247_0.070000000000000007_0.023step3.rootanalyzer2.root TOB 1 4 yes tuningXtalk XT 0.725,0.110,0.027 =0.702,0.120,0.029 =0.714,0.120,0.023  =0.742,0.100,0.029 =0.754,0.100,0.023 =0.814,0.070,0.023
 
 //data/MC LA
-//./compareTreesMoreRootsValidation 6 /opt/sbg/data/data6/cms/mjansova/CMSSW_10_0_2/src/CalibTracker/SiStripCommon/test/test_shallowTrackAndCluster_test.root /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_default_1step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_LA_0.01444step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_LA_0.01889step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_LA_0.02777step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_LA_0.03222step3.rootanalyzer2.root TOB 1 4 yes tuningLA LA default 0.014 0.019 0.028 0.032
+//./compareTreesMoreRootsValidation 6 /opt/sbg/data/data6/cms/mjansova/CMSSW_10_0_2/src/CalibTracker/SiStripCommon/test/test_shallowTrackAndCluster_test.root /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_default_1step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_LA_0.01444step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_LA_0.01889step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_LA_0.02777step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_LA_0.03222step3.rootanalyzer2.root TOB 1 4 yes tuningLA LA 0.023+-0.004 -2 -1 +1 +2
 
 
 //data/MC xtalk measurement
 //./compareTreesMoreRootsValidation 3 /opt/sbg/data/data6/cms/mjansova/CMSSW_10_0_2/src/CalibTracker/SiStripCommon/test/test_shallowTrackAndCluster_test.root /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_default_1step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_XTmNZstep3.rootanalyzer2.root TOB 1 4 yes tuningMeasured XTm default updated
+
+//./compareTreesMoreRootsValidation 3 /opt/sbg/data/data6/cms/mjansova/CMSSW_10_0_2/src/CalibTracker/SiStripCommon/test/test_shallowTrackAndCluster_test.root /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_default_1step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_XTmdiststep3.rootanalyzer2.root TOB 1 4 yes tuningMeasured XT default updated
+
+//./compareTreesMoreRootsValidation 3 /opt/sbg/data/data6/cms/mjansova/CMSSW_10_0_2/src/CalibTracker/SiStripCommon/test/test_shallowTrackAndCluster_test.root /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_default_1step3.rootanalyzer2.root  /opt/sbg/scratch1/cms/mjansova/store/tmp/MCtuning/Coll2017_XTmdiststep3.rootanalyzer2.root TID 1 1 yes tuningMeasured XT default updated
+
+//Coll2017_XTmdiststep3.rootanalyzer2.root
 
 //TODO rest
 #include <fstream>
@@ -228,6 +242,11 @@ Modified_tdr_style();
            posSdId = v; 
        if(observables.at(v) == "clusterlayerwheel")
            posSdIdLayer = v; 
+       if(observables.at(v) == "clusterstringringrod" && (  subDet == "TEC" || subDet == "TID") )
+       {
+           cout << "getting ring now " << endl;
+           posSdIdLayer = v; 
+       }
        if(observables.at(v) == "PU")
           puId = v; 
        t1->SetBranchAddress(observables.at(v).c_str(), & (var.at(v)) );
@@ -324,7 +343,7 @@ Modified_tdr_style();
    //cout << "in here h" << endl;
    hists.resize(varTot.size());
    histsT2.resize(t2.size());
-   vector<int> hcolors = {632, 602, 618, 922, 434, 594, 892, 634, 419  };
+   vector<int> hcolors = {632, 602, 618, 922, 434,  824, 634, 419, 594, 892  };
    //if(hists.size() != histsT2.at(0).size())
    //    throw std::runtime_error("The histogras do not have same size, something went terribly wrong!");
 
@@ -358,7 +377,21 @@ Modified_tdr_style();
        float end = varTot.at(h).at(size1) > varTotT2.at(0).at(h).at(size2) ? varTot.at(h).at(size1) : varTotT2.at(0).at(h).at(size2);
     //cout << "in here 1.4"  << endl;
     //
-       TLegend leg(0.6,0.7,0.9,0.9);
+       TLegend *leg;
+       if(nfile< 4)
+       {
+           leg = new TLegend(0.6,0.7, 0.90 , 0.90);
+       }
+       else
+       {
+           if(qt=="XT" || qt=="LA")
+                leg = new TLegend(0.55,0.68, 1 , 0.93);
+           else
+                leg = new TLegend(0.6,0.68, 0.95 , 0.93);
+           leg->SetBorderSize(0);
+           leg->SetFillStyle(0);
+           leg->SetTextFont(42);
+       }
        float nbins=200;
        string histname = observables.at(h);
        if(observables.at(h) == "clusterchargeRescaled")
@@ -432,7 +465,7 @@ Modified_tdr_style();
        //hists.at(h)->SetLineColor(kBlack);
        hists.at(h)->SetMarkerStyle(kFullCircle);
        hists.at(h)->SetMarkerColor(kBlack);
-       if(nfile>2)
+       if(nfile>3 && qt!="XT" && qt!="Ee"  && qt!="eADC")
        {
            hists.at(h)->SetMarkerColor(kWhite);
            hists.at(h)->SetMarkerStyle(1);
@@ -442,9 +475,11 @@ Modified_tdr_style();
        //hists.at(h)->GetYaxis()->SetTitle("a.u.");
        float maxm = hists.at(h)->GetMaximum();
        hists.at(h)->SetMaximum(1.5*maxm);
+       if(observables.at(h) == "clusterseedchargeRescaled" && ( qt== "eADC" || qt=="Ee") )
+           hists.at(h)->SetMaximum(1.7*maxm);
        hists.at(h)->SetTitle("");
-       if(nfile<3)
-           leg.AddEntry(hists.at(h), "data", "p");
+       if(nfile<4 || qt=="XT" || qt=="Ee"|| qt=="eADC")
+           leg->AddEntry(hists.at(h), "data", "p");
        hists.at(h)->Draw("P");
        TLatex text(0.2,0.85, label.c_str());  
        //TLatex text(0.2,0.2, "test");  
@@ -466,8 +501,18 @@ Modified_tdr_style();
            histsT2.at(t).at(h)->SetLineColor(hcolors.at(t));
            histsT2.at(t).at(h)->SetMarkerStyle(1);
            cout << "hist nr " << t << " color " << hcolors.at(t) << endl;
-           //leg.AddEntry(histsT2.at(t).at(h), "simulation "+qt+"="+LE.at(t), "l");
-           leg.AddEntry(histsT2.at(t).at(h), "simulation", "l");
+           TString qt2= qt;
+           if(t==0)
+              qt2+= " default =";
+           if(qt=="delta" || qt=="mu")
+               leg->AddEntry(histsT2.at(t).at(h),"#"+qt2+LE.at(t), "l");
+           else if(qt=="XT" && nfile<4)
+               leg->AddEntry(histsT2.at(t).at(h),qt+" "+LE.at(t), "l");
+           else if(qt=="LA" && t>0)
+               leg->AddEntry(histsT2.at(t).at(h), qt2+LE.at(t)+"#sigma", "l");
+           else
+           leg->AddEntry(histsT2.at(t).at(h), qt2+LE.at(t), "l");
+           //leg.AddEntry(histsT2.at(t).at(h), "simulation", "l");
        /*    if(norm == "yes" && t==0)
            {
                histsT2.at(t).at(h)->DrawNormalized("hist e", n);
@@ -483,7 +528,7 @@ Modified_tdr_style();
            else
                histsT2.at(t).at(h)->Draw("same hist e");
   
-           leg.Draw();
+           leg->Draw();
            cout << "hist " << observables.at(h) << " mean 1 " << hists.at(h)->GetMean() << "  mean2 " <<  histsT2.at(t).at(h)->GetMean()<< " mean 1 err " << hists.at(h)->GetMeanError() << "  mean2 err " <<  histsT2.at(t).at(h)->GetMeanError() << endl;
  
        }
@@ -496,7 +541,7 @@ Modified_tdr_style();
        //uint32_t o2=20;
        for(uint32_t t=0;t<t2.size();t++)
        {
-           if(nfile>2)
+           if(nfile>3 && qt!="XT" && qt!="Ee"&& qt!="eADC")
                histD.at(t)  = (TH1F*) histsT2.at(0).at(h)->Clone() ; //@MJ@ TODO for all root files
            else
                histD.at(t)  = (TH1F*) hists.at(h)->Clone() ; //@MJ@ TODO for all root files
@@ -525,8 +570,12 @@ Modified_tdr_style();
        cout << "hist " << h << " drawn" << endl; 
 
        c.Update();
-       c.SaveAs(("output/"+(string)dir+"/"+observables.at(h) + (string)subDet + "l" + (string)slayerD+"to" +(string)slayerU+(string)qt+".root").c_str());
-       c.SaveAs(("output/"+(string)dir+"/"+observables.at(h) + (string)subDet +"l" + (string)slayerD+"to" +(string)slayerU+(string)qt+ ".eps").c_str());
+
+       string specialC = "";
+       if(dir == "tuningMeasured")
+           specialC ="m";
+       c.SaveAs(("output/"+(string)dir+"/"+observables.at(h) + (string)subDet + "l" + (string)slayerD+"to" +(string)slayerU+(string)qt+specialC+".root").c_str());
+       c.SaveAs(("output/"+(string)dir+"/"+observables.at(h) + (string)subDet +"l" + (string)slayerD+"to" +(string)slayerU+(string)qt+specialC+ ".eps").c_str());
        //delete histD; //do i need that actually?!
    }
 
@@ -672,7 +721,7 @@ Modified_tdr_style();
     TCanvas ca("dec", "dec");
     ca.cd();
     deco->GetXaxis()->SetTitle("TOF of reference - TOF of particle [ns]");
-    deco->GetYaxis()->SetTitle("fraction of charge collected");
+    deco->GetYaxis()->SetTitle("fraction of collected charge");
     deco->Draw("HC");
     ca.SaveAs(("output/"+(string)dir+"/decoShape.eps").c_str());
     ca.SaveAs(("output/"+(string)dir+"/decoShape.root").c_str());
